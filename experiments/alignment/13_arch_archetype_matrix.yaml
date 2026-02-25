@@ -1,0 +1,107 @@
+name: "Architecture Archetype Matrix"
+description: "3x2 matrix: architecture(reactive/social/dual_process) × archetype(diplomat/survivalist), all corrupted"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 6
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "reactive_diplomat"
+    overrides:
+      default_architecture: "reactive"
+      agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "social_diplomat"
+    overrides:
+      default_architecture: "social"
+      agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "dual_process_diplomat"
+    overrides:
+      default_architecture: "dual_process"
+      agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "reactive_survivalist"
+    overrides:
+      default_architecture: "reactive"
+      agent_archetypes: ["survivalist", "survivalist", "survivalist", "survivalist", "survivalist", "survivalist"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "social_survivalist"
+    overrides:
+      default_architecture: "social"
+      agent_archetypes: ["survivalist", "survivalist", "survivalist", "survivalist", "survivalist", "survivalist"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "dual_process_survivalist"
+    overrides:
+      default_architecture: "dual_process"
+      agent_archetypes: ["survivalist", "survivalist", "survivalist", "survivalist", "survivalist", "survivalist"]
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - trait_evolution_magnitude
+  - avg_survival_ticks
+output_dir: "data/experiments/alignment/arch_archetype_matrix"
+formats: ["csv", "markdown"]
+record_trajectories: false

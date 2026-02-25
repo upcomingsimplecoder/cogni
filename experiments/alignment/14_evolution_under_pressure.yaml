@@ -1,0 +1,59 @@
+name: "Evolution Under Pressure"
+description: "2x2 factorial: evolution(on/off) × corruption(control/corrupt_3_agents)"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 500
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  mutation_rate: 0.05
+  max_population: 12
+conditions:
+  - name: "no_evolution_control"
+    overrides:
+      evolution_enabled: false
+  - name: "no_evolution_corrupt"
+    overrides:
+      evolution_enabled: false
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "random_n"
+          n: 3
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "evolution_control"
+    overrides:
+      evolution_enabled: true
+  - name: "evolution_corrupt"
+    overrides:
+      evolution_enabled: true
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "random_n"
+          n: 3
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - trait_evolution_magnitude
+  - avg_survival_ticks
+  - survival_rate
+output_dir: "data/experiments/alignment/evolution_under_pressure"
+formats: ["csv", "markdown"]
+record_trajectories: false

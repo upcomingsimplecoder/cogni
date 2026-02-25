@@ -1,0 +1,21 @@
+name: "Architecture Comparison"
+description: "Compare reactive vs cautious architectures"
+base:
+  world_width: 32
+  world_height: 32
+  max_ticks: 100
+  num_agents: 3
+conditions:
+  - name: "reactive"
+    overrides:
+      default_architecture: "reactive"
+  - name: "cautious"
+    overrides:
+      default_architecture: "cautious"
+replicates: 3
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+output_dir: "data/experiments/arch_comparison"
+formats: ["csv", "markdown"]

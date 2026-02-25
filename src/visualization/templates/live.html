@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTOCOG — Live Cognitive Society</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #e5e5e5;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            gap: 1px;
+            background: #333;
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            background: #1a1a1a;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #06b6d4;
+            letter-spacing: 0.5px;
+        }
+
+        .tick-counter {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .tick-counter strong {
+            color: #e5e5e5;
+            margin-left: 4px;
+        }
+
+        /* Main Canvas Area */
+        .canvas-area {
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 1px solid #333;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Controls Bar */
+        .controls {
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        button {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #e5e5e5;
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #333;
+            border-color: #06b6d4;
+        }
+
+        button.active {
+            background: #06b6d4;
+            border-color: #06b6d4;
+            color: #0a0a0a;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: background 0.3s;
+        }
+
+        .status-indicator.connected {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        .speed-display {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .speed-display span {
+            color: #06b6d4;
+            font-weight: 600;
+        }
+
+        /* Right Sidebar */
+        .sidebar {
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            border-bottom: 1px solid #333;
+            padding: 16px;
+        }
+
+        .sidebar-section h2 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Agent Inspector */
+        .inspector {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .inspector-empty {
+            color: #666;
+            font-size: 13px;
+            font-style: italic;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .agent-header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .agent-color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .agent-name-archetype {
+            flex: 1;
+        }
+
+        .agent-name-archetype .name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e5e5e5;
+        }
+
+        .agent-name-archetype .archetype {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .needs-bars {
+            margin-bottom: 16px;
+        }
+
+        .need-bar {
+            margin-bottom: 8px;
+        }
+
+        .need-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .need-bar-label .label {
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .need-bar-label .value {
+            color: #e5e5e5;
+            font-weight: 600;
+        }
+
+        .need-bar-bg {
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .need-bar-fill {
+            height: 100%;
+            transition: width 0.4s ease-out;
+            border-radius: 3px;
+        }
+
+        .need-bar-fill.hunger { background: #f59e0b; }
+        .need-bar-fill.thirst { background: #3b82f6; }
+        .need-bar-fill.energy { background: #10b981; }
+        .need-bar-fill.health { background: #ef4444; }
+
+        .traits {
+            margin-bottom: 16px;
+        }
+
+        .traits-content {
+            font-size: 11px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .trait-item {
+            display: inline;
+        }
+
+        .trait-item:not(:last-child)::after {
+            content: " | ";
+            color: #444;
+        }
+
+        .trait-key {
+            color: #06b6d4;
+        }
+
+        .intention-section {
+            margin-bottom: 16px;
+        }
+
+        .intention-content {
+            font-size: 12px;
+            color: #e5e5e5;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            border-left: 3px solid #06b6d4;
+        }
+
+        .confidence {
+            font-size: 10px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .monologue-section {
+            margin-bottom: 16px;
+        }
+
+        .monologue-content {
+            font-size: 12px;
+            color: #aaa;
+            font-style: italic;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            max-height: 100px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .inventory-section {
+            margin-bottom: 16px;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .inventory-item {
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: #e5e5e5;
+        }
+
+        .inventory-item .count {
+            color: #06b6d4;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .action-section {
+            font-size: 11px;
+            color: #888;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        .action-type {
+            color: #e5e5e5;
+            font-weight: 600;
+        }
+
+        .action-success {
+            color: #22c55e;
+        }
+
+        .action-fail {
+            color: #ef4444;
+        }
+
+        /* Events Feed */
+        .events-feed {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            font-size: 11px;
+            color: #888;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            border-left: 3px solid #06b6d4;
+            animation: fadeIn 0.3s;
+        }
+
+        .event-item.new {
+            background: #2a3a3a;
+            border-left-color: #22c55e;
+        }
+
+        /* Cultural Dynamics Panel */
+        .cultural-stats {
+            font-size: 12px;
+        }
+
+        .cultural-stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .cultural-stat-label {
+            color: #888;
+            font-size: 11px;
+        }
+
+        .cultural-stat-value {
+            color: #e5e5e5;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .cultural-variant-list {
+            margin-top: 8px;
+        }
+
+        .cultural-variant-item {
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: #e5e5e5;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cultural-variant-item .context {
+            color: #06b6d4;
+        }
+
+        .transmission-event {
+            font-size: 11px;
+            color: #888;
+            padding: 6px 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border-left: 3px solid #888;
+        }
+
+        .transmission-event.prestige { border-left-color: #facc15; }
+        .transmission-event.conformist { border-left-color: #3b82f6; }
+        .transmission-event.content { border-left-color: #22c55e; }
+        .transmission-event.anti_conformist { border-left-color: #a855f7; }
+
+        .cultural-group-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .style-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background: #2a2a2a;
+            color: #aaa;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>AUTOCOG — Live Cognitive Society</h1>
+            <div class="tick-counter">tick:<strong id="tick-display">0</strong></div>
+        </header>
+
+        <!-- Canvas Area -->
+        <div class="canvas-area">
+            <div class="canvas-wrapper">
+                <canvas id="world-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="sidebar">
+            <!-- Agent Inspector -->
+            <div class="sidebar-section inspector" id="inspector">
+                <h2>Agent Inspector</h2>
+                <div class="inspector-empty">Click an agent on the canvas to inspect</div>
+            </div>
+
+            <!-- Cultural Dynamics -->
+            <div class="sidebar-section" id="cultural-panel" style="display: none;">
+                <h2>Cultural Dynamics</h2>
+                <div id="cultural-stats-content">
+                    <div style="color: #666; font-size: 12px; font-style: italic;">No cultural data</div>
+                </div>
+            </div>
+
+            <!-- Metacognition Panel -->
+            <div class="sidebar-section" id="metacog-panel" style="display: none;">
+                <h2>Metacognition</h2>
+                <div id="metacog-stats-content">
+                    <div style="color: #666; font-size: 12px; font-style: italic;">No metacognitive data</div>
+                </div>
+            </div>
+
+            <!-- Language Panel -->
+            <div class="sidebar-section" id="language-panel" style="display: none;">
+                <h2>Emergent Language</h2>
+                <div id="language-stats-content">
+                    <div style="color: #666; font-size: 12px; font-style: italic;">No language data</div>
+                </div>
+            </div>
+
+            <!-- Emergence Events -->
+            <div class="sidebar-section">
+                <h2>Emergence Events</h2>
+                <div class="events-feed" id="events-feed">
+                    <div style="color: #666; font-size: 12px; font-style: italic;">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-group">
+                <div class="status-indicator" id="ws-status"></div>
+                <span style="font-size: 12px; color: #888;" id="ws-status-text">Connecting...</span>
+            </div>
+            <button id="pause-btn">Pause</button>
+            <div class="control-group">
+                <label>History</label>
+                <input type="range" id="timeline-scrubber" min="0" max="0" value="0"
+                    style="width: 120px; accent-color: #06b6d4;" disabled>
+                <span style="font-size: 11px; color: #888;" id="timeline-label">live</span>
+            </div>
+            <div class="speed-display">
+                Speed: <span id="speed-display">0</span> ticks/s
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let ws = null;
+        let config = null;
+        let currentData = null;
+        let selectedAgentId = null;
+        let isPaused = false;
+        let tickBuffer = [];
+        let tickTimes = [];
+        let lastEventCount = 0;
+        let activeTransmissions = []; // [{observerId, actorId, biasType, remainingTicks}]
+        let tickHistory = []; // rolling buffer of past tick data for timeline scrubber
+        const MAX_HISTORY = 200;
+        let isScrubbingHistory = false;
+
+        // Cultural group ring colors (8 max, cycle for more)
+        const CULTURAL_GROUP_COLORS = [
+            '#f472b6', '#a78bfa', '#fb923c', '#2dd4bf',
+            '#facc15', '#38bdf8', '#e879f9', '#4ade80',
+        ];
+        const BIAS_COLORS = {
+            prestige: '#facc15', conformist: '#3b82f6',
+            content: '#22c55e', anti_conformist: '#a855f7',
+        };
+        const STYLE_LABELS = {
+            prestige: 'Prestige', conformist: 'Conformist',
+            content: 'Content', anti_conformist: 'Anti-Conformist', balanced: 'Balanced',
+        };
+        function getCulturalGroupColor(groupId) {
+            if (groupId == null || groupId < 0) return null;
+            return CULTURAL_GROUP_COLORS[groupId % CULTURAL_GROUP_COLORS.length];
+        }
+
+        // DOM Elements
+        const canvas = document.getElementById('world-canvas');
+        const ctx = canvas.getContext('2d');
+        const wsStatus = document.getElementById('ws-status');
+        const wsStatusText = document.getElementById('ws-status-text');
+        const tickDisplay = document.getElementById('tick-display');
+        const pauseBtn = document.getElementById('pause-btn');
+        const speedDisplay = document.getElementById('speed-display');
+        const inspector = document.getElementById('inspector');
+        const eventsFeed = document.getElementById('events-feed');
+        const timelineScrubber = document.getElementById('timeline-scrubber');
+        const timelineLabel = document.getElementById('timeline-label');
+
+        // Archetype colors (fallback if not provided)
+        const ARCHETYPE_COLORS = {
+            gatherer: '#22c55e',
+            explorer: '#06b6d4',
+            diplomat: '#eab308',
+            aggressor: '#ef4444',
+            survivalist: '#f8fafc'
+        };
+
+        // Initialize
+        async function init() {
+            await fetchConfig();
+            connectWebSocket();
+            setupEventListeners();
+        }
+
+        // Fetch configuration
+        async function fetchConfig() {
+            try {
+                const response = await fetch('/api/config');
+                config = await response.json();
+                console.log('Config loaded:', config);
+                setupCanvas();
+            } catch (error) {
+                console.error('Failed to fetch config:', error);
+            }
+        }
+
+        // Setup canvas
+        function setupCanvas() {
+            const cellSize = 8;
+            canvas.width = config.world_width * cellSize;
+            canvas.height = config.world_height * cellSize;
+        }
+
+        // Connect WebSocket
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                wsStatus.classList.add('connected');
+                wsStatusText.textContent = 'Connected';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleTickData(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                wsStatusText.textContent = 'Error';
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                wsStatus.classList.remove('connected');
+                wsStatusText.textContent = 'Disconnected - Reconnecting...';
+                // Auto-reconnect after 2s
+                setTimeout(connectWebSocket, 2000);
+            };
+        }
+
+        // Handle incoming tick data
+        function handleTickData(data) {
+            if (isPaused) {
+                tickBuffer.push(data);
+                return;
+            }
+
+            // Decay existing transmission lines
+            activeTransmissions = activeTransmissions
+                .map(t => ({ ...t, remainingTicks: t.remainingTicks - 1 }))
+                .filter(t => t.remainingTicks > 0);
+
+            // Add new transmission events
+            if (data.cultural && data.cultural.transmission_events) {
+                for (const event of data.cultural.transmission_events) {
+                    if (!event.adopted || !event.actor) continue;
+                    activeTransmissions.push({
+                        observerId: event.observer,
+                        actorId: event.actor,
+                        biasType: event.bias,
+                        remainingTicks: 2,
+                    });
+                }
+            }
+
+            currentData = data;
+            updateTick();
+            updateSpeed();
+
+            // Store in history for timeline scrubber
+            tickHistory.push(data);
+            if (tickHistory.length > MAX_HISTORY) {
+                tickHistory.shift();
+            }
+            if (!isScrubbingHistory) {
+                timelineScrubber.max = tickHistory.length - 1;
+                timelineScrubber.value = tickHistory.length - 1;
+                timelineScrubber.disabled = false;
+                timelineLabel.textContent = 'live';
+            }
+        }
+
+        // Update UI for current tick
+        function updateTick() {
+            if (!currentData) return;
+
+            tickDisplay.textContent = currentData.tick;
+            renderWorld();
+            updateInspector();
+            updateCulturalPanel();
+            updateMetacogPanel();
+            updateLanguagePanel();
+            updateEvents();
+        }
+
+        // Calculate and display ticks per second
+        function updateSpeed() {
+            const now = Date.now();
+            tickTimes.push(now);
+
+            // Keep only last 10 ticks
+            if (tickTimes.length > 10) {
+                tickTimes.shift();
+            }
+
+            if (tickTimes.length >= 2) {
+                const elapsed = (tickTimes[tickTimes.length - 1] - tickTimes[0]) / 1000;
+                const ticksPerSecond = (tickTimes.length - 1) / elapsed;
+                speedDisplay.textContent = ticksPerSecond.toFixed(1);
+            }
+        }
+
+        // Render world on canvas
+        function renderWorld() {
+            if (!config || !currentData) return;
+
+            const cellSize = 8;
+
+            // Clear
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= config.world_width; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * cellSize, 0);
+                ctx.lineTo(x * cellSize, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= config.world_height; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * cellSize);
+                ctx.lineTo(canvas.width, y * cellSize);
+                ctx.stroke();
+            }
+
+            // Draw agents
+            currentData.agents.forEach(agent => {
+                if (!agent.alive) return;
+
+                const x = agent.x * cellSize + cellSize / 2;
+                const y = agent.y * cellSize + cellSize / 2;
+
+                // Highlight if selected
+                if (agent.id === selectedAgentId) {
+                    ctx.strokeStyle = '#06b6d4';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, cellSize / 2 + 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Draw agent circle
+                const color = agent.color || ARCHETYPE_COLORS[agent.archetype] || '#888';
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, cellSize / 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cultural group ring
+                if (agent.cultural && agent.cultural.cultural_group >= 0) {
+                    const groupColor = getCulturalGroupColor(agent.cultural.cultural_group);
+                    if (groupColor) {
+                        ctx.strokeStyle = groupColor;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(x, y, cellSize / 2 - 0.5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw health bar below agent
+                const barWidth = cellSize;
+                const barHeight = 2;
+                const barX = x - barWidth / 2;
+                const barY = y + cellSize / 2 + 2;
+
+                ctx.fillStyle = '#2a2a2a';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(barX, barY, barWidth * (agent.health / 100), barHeight);
+            });
+
+            // Draw transmission lines (after agents so they overlay)
+            if (currentData && activeTransmissions.length > 0) {
+                const cs = 8;
+                for (const tx of activeTransmissions) {
+                    const observer = currentData.agents.find(a => a.id === tx.observerId);
+                    const actor = currentData.agents.find(a => a.id === tx.actorId);
+                    if (!observer || !actor || !observer.alive || !actor.alive) continue;
+
+                    const ox = observer.x * cs + cs / 2;
+                    const oy = observer.y * cs + cs / 2;
+                    const ax = actor.x * cs + cs / 2;
+                    const ay = actor.y * cs + cs / 2;
+
+                    const alpha = tx.remainingTicks / 2;
+                    const lineColor = BIAS_COLORS[tx.biasType] || '#888';
+
+                    ctx.save();
+                    ctx.globalAlpha = alpha * 0.6;
+                    ctx.strokeStyle = lineColor;
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(ox, oy);
+                    ctx.stroke();
+
+                    // Arrowhead at observer end (direction of knowledge flow)
+                    const angle = Math.atan2(oy - ay, ox - ax);
+                    const headLen = 6;
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(
+                        ox - headLen * Math.cos(angle - Math.PI / 6),
+                        oy - headLen * Math.sin(angle - Math.PI / 6)
+                    );
+                    ctx.moveTo(ox, oy);
+                    ctx.lineTo(
+                        ox - headLen * Math.cos(angle + Math.PI / 6),
+                        oy - headLen * Math.sin(angle + Math.PI / 6)
+                    );
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // Update agent inspector
+        function updateInspector() {
+            if (!selectedAgentId || !currentData) {
+                inspector.innerHTML = '<h2>Agent Inspector</h2><div class="inspector-empty">Click an agent on the canvas to inspect</div>';
+                return;
+            }
+
+            const agent = currentData.agents.find(a => a.id === selectedAgentId);
+            if (!agent) {
+                selectedAgentId = null;
+                updateInspector();
+                return;
+            }
+
+            const color = agent.color || ARCHETYPE_COLORS[agent.archetype] || '#888';
+
+            // Build traits display
+            const traitsHtml = agent.traits ? Object.entries(agent.traits).map(([key, value]) => {
+                const shortKey = key.replace('_tendency', '').replace('_', '').substring(0, 6);
+                return `<span class="trait-item"><span class="trait-key">${shortKey}</span>:${typeof value === 'number' ? value.toFixed(2) : value}</span>`;
+            }).join('') : '<span style="color: #666;">No traits data</span>';
+
+            // Build inventory display
+            const inventoryHtml = agent.inventory && Object.keys(agent.inventory).length > 0
+                ? Object.entries(agent.inventory).map(([item, count]) =>
+                    `<div class="inventory-item">${item}<span class="count">×${count}</span></div>`
+                  ).join('')
+                : '<div style="color: #666; font-size: 11px;">Empty</div>';
+
+            inspector.innerHTML = `
+                <h2>Agent Inspector</h2>
+
+                <div class="agent-header-info">
+                    <div class="agent-color-dot" style="background: ${color};"></div>
+                    <div class="agent-name-archetype">
+                        <div class="name">${agent.name}</div>
+                        <div class="archetype">${agent.archetype}</div>
+                    </div>
+                </div>
+
+                <div class="needs-bars">
+                    <div class="need-bar">
+                        <div class="need-bar-label">
+                            <span class="label">Hunger</span>
+                            <span class="value">${agent.hunger.toFixed(1)}</span>
+                        </div>
+                        <div class="need-bar-bg">
+                            <div class="need-bar-fill hunger" style="width: ${agent.hunger}%"></div>
+                        </div>
+                    </div>
+                    <div class="need-bar">
+                        <div class="need-bar-label">
+                            <span class="label">Thirst</span>
+                            <span class="value">${agent.thirst.toFixed(1)}</span>
+                        </div>
+                        <div class="need-bar-bg">
+                            <div class="need-bar-fill thirst" style="width: ${agent.thirst}%"></div>
+                        </div>
+                    </div>
+                    <div class="need-bar">
+                        <div class="need-bar-label">
+                            <span class="label">Energy</span>
+                            <span class="value">${agent.energy.toFixed(1)}</span>
+                        </div>
+                        <div class="need-bar-bg">
+                            <div class="need-bar-fill energy" style="width: ${agent.energy}%"></div>
+                        </div>
+                    </div>
+                    <div class="need-bar">
+                        <div class="need-bar-label">
+                            <span class="label">Health</span>
+                            <span class="value">${agent.health.toFixed(1)}</span>
+                        </div>
+                        <div class="need-bar-bg">
+                            <div class="need-bar-fill health" style="width: ${agent.health}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="traits">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Traits</h3>
+                    <div class="traits-content">${traitsHtml}</div>
+                </div>
+
+                ${agent.intention ? `
+                <div class="intention-section">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Current Intention</h3>
+                    <div class="intention-content">
+                        ${agent.intention}
+                        ${agent.confidence !== undefined ? `<div class="confidence">Confidence: ${(agent.confidence * 100).toFixed(0)}%</div>` : ''}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${agent.monologue ? `
+                <div class="monologue-section">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Internal Monologue</h3>
+                    <div class="monologue-content">${agent.monologue}</div>
+                </div>
+                ` : ''}
+
+                <div class="inventory-section">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Inventory</h3>
+                    <div class="inventory-items">${inventoryHtml}</div>
+                </div>
+
+                ${agent.action_type ? `
+                <div class="action-section">
+                    <span style="color: #888;">Last Action:</span>
+                    <span class="action-type">${agent.action_type}</span>
+                    <span class="${agent.action_success ? 'action-success' : 'action-fail'}">${agent.action_success ? '✓' : '✗'}</span>
+                </div>
+                ` : ''}
+
+                ${agent.cultural && agent.cultural.learning_style ? `
+                <div style="margin-top: 16px;">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Cultural Profile</h3>
+                    <div class="cultural-stats">
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Learning Style</span>
+                            <span class="style-badge">${STYLE_LABELS[agent.cultural.learning_style] || agent.cultural.learning_style}</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Repertoire</span>
+                            <span class="cultural-stat-value">${agent.cultural.adopted_count} adopted / ${agent.cultural.repertoire_size} total</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Cultural Group</span>
+                            <span class="cultural-stat-value">
+                                ${agent.cultural.cultural_group >= 0
+                                    ? '<span class="cultural-group-badge" style="background: ' + getCulturalGroupColor(agent.cultural.cultural_group) + ';"></span>Group ' + agent.cultural.cultural_group
+                                    : '<span style="color: #666;">Unaffiliated</span>'
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${agent.metacognition && agent.metacognition.active_strategy ? `
+                <div style="margin-top: 16px;">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Metacognition</h3>
+                    <div class="cultural-stats">
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Strategy</span>
+                            <span class="style-badge">${agent.metacognition.active_strategy}</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Calibration</span>
+                            <span class="cultural-stat-value">${(agent.metacognition.calibration_score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Confidence Bias</span>
+                            <span class="cultural-stat-value" style="color: ${agent.metacognition.confidence_bias > 0.1 ? '#f59e0b' : agent.metacognition.confidence_bias < -0.1 ? '#3b82f6' : '#22c55e'};">
+                                ${agent.metacognition.confidence_bias > 0 ? '+' : ''}${(agent.metacognition.confidence_bias * 100).toFixed(0)}%
+                            </span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Self-Awareness</span>
+                            <span class="cultural-stat-value">${(agent.metacognition.self_awareness_score * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Strategy Switches</span>
+                            <span class="cultural-stat-value">${agent.metacognition.total_switches}</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Deliberation Threshold</span>
+                            <span class="cultural-stat-value">${(agent.metacognition.deliberation_threshold * 100).toFixed(0)}%</span>
+                        </div>
+                        ${agent.metacognition.self_model && Object.keys(agent.metacognition.self_model).length > 0 ? `
+                        <div style="margin-top: 8px;">
+                            <span class="cultural-stat-label">Self-Model</span>
+                            <div style="margin-top: 4px;">
+                                ${Object.entries(agent.metacognition.self_model).map(function(entry) {
+                                    const val = typeof entry[1] === 'number' ? entry[1] : 0;
+                                    const color = val >= 0.7 ? '#22c55e' : val >= 0.4 ? '#f59e0b' : '#ef4444';
+                                    return '<div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px;">' +
+                                        '<span style="color: #666;">' + entry[0] + '</span>' +
+                                        '<span style="color: ' + color + '; font-weight: 600;">' + (val * 100).toFixed(0) + '%</span></div>';
+                                }).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${agent.language && agent.language.vocabulary_size > 0 ? `
+                <div style="margin-top: 16px;">
+                    <h3 style="font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase;">Language</h3>
+                    <div class="cultural-stats">
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Vocabulary</span>
+                            <span class="cultural-stat-value">${agent.language.vocabulary_size} symbols</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Conventions</span>
+                            <span class="cultural-stat-value">${agent.language.convention_count}</span>
+                        </div>
+                        <div class="cultural-stat-row">
+                            <span class="cultural-stat-label">Comm. Success</span>
+                            <span class="cultural-stat-value" style="color: ${agent.language.comm_success_rate >= 0.5 ? '#22c55e' : '#f59e0b'};">
+                                ${(agent.language.comm_success_rate * 100).toFixed(0)}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Update cultural dynamics panel
+        function updateCulturalPanel() {
+            const panel = document.getElementById('cultural-panel');
+            const content = document.getElementById('cultural-stats-content');
+
+            if (!currentData || !currentData.cultural ||
+                !currentData.cultural.transmission_events) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            panel.style.display = 'block';
+            const cultural = currentData.cultural;
+            const groups = cultural.cultural_groups || [];
+            const diversity = cultural.diversity !== undefined
+                ? cultural.diversity.toFixed(2)
+                : '—';
+
+            // Variant frequencies — top 3
+            let topVariants = '';
+            if (cultural.variant_frequencies) {
+                const sorted = Object.entries(cultural.variant_frequencies)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+                topVariants = sorted.map(function(entry) {
+                    const parts = entry[0].split(':');
+                    return '<div class="cultural-variant-item">' +
+                        '<span class="context">' + (parts[0] || entry[0]) + '</span>' +
+                        '<span>' + (parts[1] || '') + ' (' + entry[1] + ')</span>' +
+                        '</div>';
+                }).join('');
+            }
+
+            // Recent transmission events — last 5 successful
+            const recentEvents = (cultural.transmission_events || [])
+                .filter(function(e) { return e.adopted; })
+                .slice(-5)
+                .reverse();
+
+            const eventsHtml = recentEvents.length > 0
+                ? recentEvents.map(function(e) {
+                    return '<div class="transmission-event ' + e.bias + '">' +
+                        '<strong>' + e.observer.substring(0, 8) + '…</strong> adopted ' +
+                        '<span style="color: ' + (BIAS_COLORS[e.bias] || '#888') + ';">[' + e.bias + ']</span> ' +
+                        e.variant.split(':').pop() +
+                        '</div>';
+                }).join('')
+                : '<div style="color: #666; font-size: 11px;">No recent transmissions</div>';
+
+            content.innerHTML = '<div class="cultural-stats">' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Cultural Groups</span>' +
+                    '<span class="cultural-stat-value">' + groups.length + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Diversity (Shannon)</span>' +
+                    '<span class="cultural-stat-value">' + diversity + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Total Adopted</span>' +
+                    '<span class="cultural-stat-value">' + (cultural.total_adopted || 0) + '</span>' +
+                '</div>' +
+                '</div>' +
+                (topVariants ? '<h3 style="font-size: 11px; color: #888; margin: 12px 0 6px; text-transform: uppercase;">Dominant Variants</h3>' +
+                    '<div class="cultural-variant-list">' + topVariants + '</div>' : '') +
+                '<h3 style="font-size: 11px; color: #888; margin: 12px 0 6px; text-transform: uppercase;">Recent Transmissions</h3>' +
+                eventsHtml;
+        }
+
+        // Update events feed
+        function updateEvents() {
+            if (!currentData || !currentData.emergent_events) return;
+
+            const events = currentData.emergent_events.slice(-20).reverse();
+
+            if (events.length === 0) {
+                eventsFeed.innerHTML = '<div style="color: #666; font-size: 12px; font-style: italic;">Waiting for events...</div>';
+                return;
+            }
+
+            const isNewEvent = events.length > lastEventCount;
+            lastEventCount = events.length;
+
+            eventsFeed.innerHTML = events.map((event, index) => {
+                const isNew = isNewEvent && index === 0;
+                return `<div class="event-item ${isNew ? 'new' : ''}">${event}</div>`;
+            }).join('');
+        }
+
+        // Update metacognition panel
+        function updateMetacogPanel() {
+            const panel = document.getElementById('metacog-panel');
+            const content = document.getElementById('metacog-stats-content');
+
+            if (!currentData || !currentData.metacognition ||
+                !currentData.metacognition.total_agents_tracked) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            panel.style.display = 'block';
+            const mc = currentData.metacognition;
+
+            // Strategy distribution chart
+            const stratDist = mc.strategy_distribution || {};
+            const stratHtml = Object.entries(stratDist).length > 0
+                ? Object.entries(stratDist).map(function(entry) {
+                    return '<div class="cultural-stat-row">' +
+                        '<span class="cultural-stat-label">' + entry[0] + '</span>' +
+                        '<span class="cultural-stat-value">' + entry[1] + ' agents</span>' +
+                        '</div>';
+                }).join('')
+                : '';
+
+            content.innerHTML = '<div class="cultural-stats">' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Agents Tracked</span>' +
+                    '<span class="cultural-stat-value">' + mc.total_agents_tracked + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Avg Calibration</span>' +
+                    '<span class="cultural-stat-value">' + (mc.avg_calibration_score * 100).toFixed(0) + '%</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Total Switches</span>' +
+                    '<span class="cultural-stat-value">' + mc.total_switches + '</span>' +
+                '</div>' +
+                '</div>' +
+                (stratHtml ? '<h3 style="font-size: 11px; color: #888; margin: 12px 0 6px; text-transform: uppercase;">Strategy Distribution</h3>' +
+                    '<div class="cultural-stats">' + stratHtml + '</div>' : '');
+        }
+
+        // Update language panel
+        function updateLanguagePanel() {
+            const panel = document.getElementById('language-panel');
+            const content = document.getElementById('language-stats-content');
+
+            if (!currentData || !currentData.language ||
+                !currentData.language.agents_tracked) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            panel.style.display = 'block';
+            const lang = currentData.language;
+
+            // Convention list (live dictionary)
+            const conventions = lang.conventions || [];
+            const convHtml = conventions.length > 0
+                ? conventions.map(function(c) {
+                    const parts = c.meaning.split(':');
+                    const meaningLabel = parts.length > 1 ? parts[1] : c.meaning;
+                    const typeLabel = parts.length > 0 ? parts[0] : '';
+                    return '<div class="cultural-variant-item">' +
+                        '<span style="color: #e879f9; font-weight: 700; font-family: monospace;">"' + c.symbol + '"</span> ' +
+                        '<span style="color: #888;">=</span> ' +
+                        '<span>' + meaningLabel + '</span> ' +
+                        '<span style="color: #666; font-size: 10px;">(' + c.adopters + ' agents' +
+                        (c.established ? ', established' : '') + ')</span>' +
+                        '</div>';
+                }).join('')
+                : '<div style="color: #666; font-size: 11px;">No conventions yet</div>';
+
+            content.innerHTML = '<div class="cultural-stats">' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Unique Symbols</span>' +
+                    '<span class="cultural-stat-value">' + lang.unique_symbols + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Conventions</span>' +
+                    '<span class="cultural-stat-value">' + lang.established_conventions + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Messages/tick</span>' +
+                    '<span class="cultural-stat-value">' + lang.messages_this_tick + '</span>' +
+                '</div>' +
+                '<div class="cultural-stat-row">' +
+                    '<span class="cultural-stat-label">Innovations/tick</span>' +
+                    '<span class="cultural-stat-value">' + lang.innovations_this_tick + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<h3 style="font-size: 11px; color: #888; margin: 12px 0 6px; text-transform: uppercase;">Live Dictionary</h3>' +
+                '<div class="cultural-variant-list">' + convHtml + '</div>';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Canvas click to select agent
+            canvas.addEventListener('click', (e) => {
+                if (!currentData || !config) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const cellSize = 8;
+                const gridX = Math.floor(x / cellSize);
+                const gridY = Math.floor(y / cellSize);
+
+                // Find nearest agent within 2 cells
+                let nearest = null;
+                let minDist = 2;
+
+                currentData.agents.forEach(agent => {
+                    if (!agent.alive) return;
+                    const dist = Math.sqrt(Math.pow(agent.x - gridX, 2) + Math.pow(agent.y - gridY, 2));
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = agent;
+                    }
+                });
+
+                if (nearest) {
+                    selectedAgentId = nearest.id;
+                    updateTick();
+                }
+            });
+
+            // Pause button
+            pauseBtn.addEventListener('click', () => {
+                isPaused = !isPaused;
+                pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+                pauseBtn.classList.toggle('active', isPaused);
+
+                if (!isPaused && tickBuffer.length > 0) {
+                    // Process buffered ticks
+                    tickBuffer.forEach(data => {
+                        currentData = data;
+                        updateTick();
+                    });
+                    tickBuffer = [];
+                }
+
+                // Reset scrubber to live when unpausing
+                if (!isPaused) {
+                    isScrubbingHistory = false;
+                    if (tickHistory.length > 0) {
+                        timelineScrubber.value = tickHistory.length - 1;
+                    }
+                    timelineLabel.textContent = 'live';
+                }
+            });
+
+            // Timeline scrubber
+            timelineScrubber.addEventListener('input', () => {
+                const idx = parseInt(timelineScrubber.value);
+                if (idx >= 0 && idx < tickHistory.length) {
+                    isScrubbingHistory = true;
+                    isPaused = true;
+                    pauseBtn.textContent = 'Resume';
+                    pauseBtn.classList.add('active');
+                    currentData = tickHistory[idx];
+                    updateTick();
+                    const tickNum = currentData.tick || idx;
+                    timelineLabel.textContent = 'tick ' + tickNum;
+                }
+            });
+
+            // Double-click timeline to return to live
+            timelineScrubber.addEventListener('dblclick', () => {
+                isScrubbingHistory = false;
+                isPaused = false;
+                pauseBtn.textContent = 'Pause';
+                pauseBtn.classList.remove('active');
+                if (tickHistory.length > 0) {
+                    timelineScrubber.value = tickHistory.length - 1;
+                    currentData = tickHistory[tickHistory.length - 1];
+                    updateTick();
+                }
+                timelineLabel.textContent = 'live';
+            });
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>

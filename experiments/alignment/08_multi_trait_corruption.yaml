@@ -1,0 +1,83 @@
+name: "Multi-Trait Corruption"
+description: "Which trait is load-bearing for cooperation? Isolate trait corruption effects"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "control"
+    overrides: {}
+  - name: "cooperation_only"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.0
+          mode: "set"
+  - name: "aggression_only"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            aggression: 0.9
+          mode: "set"
+  - name: "sociability_only"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            sociability: 0.0
+          mode: "set"
+  - name: "coop_and_aggression"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+          mode: "set"
+  - name: "full_corruption"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            sociability: 0.0
+            resource_sharing: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_trust_network_density
+  - avg_survival_ticks
+  - trait_evolution_magnitude
+  - survival_rate
+output_dir: "data/experiments/alignment/multi_trait_corruption"
+formats: ["csv", "markdown"]
+record_trajectories: false

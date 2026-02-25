@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTOCOG Visual Widget Catalog</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #333;
+      padding-bottom: 1rem;
+    }
+
+    h1 {
+      color: #00d4ff;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .timestamp {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .widget-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .widget-card h2 {
+      color: #00d4ff;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .widget-container {
+      background: #0a0a0a;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .error-message {
+      color: #ff4444;
+      background: #2a0000;
+      border: 1px solid #ff4444;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: monospace;
+    }
+
+    details {
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+
+    summary {
+      color: #888;
+      font-size: 0.9rem;
+      padding: 0.5rem;
+      background: #111;
+      border-radius: 4px;
+      user-select: none;
+    }
+
+    summary:hover {
+      color: #00d4ff;
+    }
+
+    pre {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 0.5rem;
+    }
+
+    canvas {
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AUTOCOG Visual Widget Catalog</h1>
+    <p class="timestamp">Last loaded: <span id="timestamp"></span></p>
+  </header>
+
+  <div id="catalog"></div>
+
+  <script type="module">
+    import { Sparkline } from '../js/widgets/sparkline.js';
+    import { HeatmapWidget } from '../js/widgets/heatmap-widget.js';
+    import { ForceGraph } from '../js/widgets/force-graph.js';
+    import { CalibrationScatter } from '../js/widgets/calibration-scatter.js';
+    import { RadarChart } from '../js/widgets/radar-chart.js';
+    import { ViolinPlot } from '../js/widgets/violin-plot.js';
+    import { GenealogyTree } from '../js/widgets/genealogy-tree.js';
+    import { SankeyWidget } from '../js/widgets/sankey-widget.js';
+    import { DecisionFunnel } from '../js/panels/decision-funnel.js';
+
+    // Set timestamp
+    document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+    // Generate test data
+    const testData = {
+      sparkline: Array.from({ length: 50 }, (_, i) =>
+        Math.sin(i * 0.2) * 0.3 + 0.5 + (Math.random() - 0.5) * 0.1
+      ),
+
+      heatmap: {
+        agents: ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'],
+        matrix: [
+          [1.0, 0.8, 0.6, 0.4, 0.2],
+          [0.7, 1.0, 0.9, 0.3, 0.5],
+          [0.5, 0.8, 1.0, 0.7, 0.4],
+          [0.3, 0.4, 0.6, 1.0, 0.8],
+          [0.2, 0.5, 0.3, 0.9, 1.0]
+        ]
+      },
+
+      forceGraph: {
+        nodes: [
+          { id: 'A1', label: 'Alice', x: 100, y: 100 },
+          { id: 'A2', label: 'Bob', x: 200, y: 150 },
+          { id: 'A3', label: 'Carol', x: 300, y: 100 },
+          { id: 'A4', label: 'Dave', x: 200, y: 50 },
+          { id: 'A5', label: 'Eve', x: 250, y: 200 }
+        ],
+        edges: [
+          { source: 'A1', target: 'A2', weight: 0.9 },
+          { source: 'A1', target: 'A4', weight: 0.7 },
+          { source: 'A2', target: 'A3', weight: 0.8 },
+          { source: 'A2', target: 'A5', weight: 0.6 },
+          { source: 'A3', target: 'A4', weight: 0.5 },
+          { source: 'A4', target: 'A5', weight: 0.4 },
+          { source: 'A5', target: 'A1', weight: 0.3 }
+        ]
+      },
+
+      calibrationScatter: {
+        bins: Array.from({ length: 10 }, (_, i) => ({
+          confidence: (i + 0.5) / 10,
+          accuracy: Math.min(1.0, (i + 0.5) / 10 + (Math.random() - 0.5) * 0.2),
+          count: Math.floor(Math.random() * 50) + 10
+        }))
+      },
+
+      radarChart: {
+        axes: ['Planning', 'Reasoning', 'Memory', 'Social', 'Learning', 'Creativity'],
+        values: [0.8, 0.9, 0.7, 0.6, 0.75, 0.85]
+      },
+
+      violinPlot: {
+        traits: ['Boldness', 'Curiosity', 'Cooperation', 'Memory', 'Planning', 'Social'],
+        data: {
+          'Boldness': [0.2, 0.3, 0.5, 0.7, 0.8, 0.6, 0.4, 0.9, 0.7, 0.5],
+          'Curiosity': [0.6, 0.7, 0.8, 0.9, 0.5, 0.4, 0.7, 0.6, 0.8, 0.9],
+          'Cooperation': [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.5, 0.6, 0.7, 0.4],
+          'Memory': [0.7, 0.8, 0.6, 0.5, 0.9, 0.7, 0.8, 0.6, 0.5, 0.7],
+          'Planning': [0.5, 0.6, 0.7, 0.8, 0.6, 0.5, 0.7, 0.8, 0.6, 0.7],
+          'Social': [0.4, 0.5, 0.6, 0.7, 0.8, 0.6, 0.5, 0.7, 0.6, 0.5]
+        }
+      },
+
+      genealogyTree: {
+        innovations: [
+          { symbol: 'tool-1', tick: 100, innovator: 'A1' },
+          { symbol: 'strategy-A', tick: 150, innovator: 'A2' },
+          { symbol: 'signal-X', tick: 200, innovator: 'A3' }
+        ],
+        adoptions: [
+          { symbol: 'tool-1', adopter: 'A2', tick: 110 },
+          { symbol: 'tool-1', adopter: 'A3', tick: 120 },
+          { symbol: 'strategy-A', adopter: 'A1', tick: 160 },
+          { symbol: 'strategy-A', adopter: 'A3', tick: 170 },
+          { symbol: 'signal-X', adopter: 'A2', tick: 210 }
+        ]
+      },
+
+      sankeyWidget: {
+        nodes: [
+          { id: 'explore', label: 'Explore' },
+          { id: 'exploit', label: 'Exploit' },
+          { id: 'cooperate', label: 'Cooperate' },
+          { id: 'compete', label: 'Compete' }
+        ],
+        flows: [
+          { source: 'explore', target: 'exploit', value: 15 },
+          { source: 'explore', target: 'cooperate', value: 8 },
+          { source: 'exploit', target: 'explore', value: 10 },
+          { source: 'exploit', target: 'compete', value: 12 },
+          { source: 'cooperate', target: 'exploit', value: 6 },
+          { source: 'compete', target: 'cooperate', value: 5 }
+        ]
+      },
+
+      decisionFunnel: {
+        agentId: 'A1',
+        agentName: 'Alice',
+        stimuli: [
+          { type: 'visual', salience: 0.8, content: 'red_object' },
+          { type: 'social', salience: 0.6, content: 'agent_nearby' },
+          { type: 'internal', salience: 0.4, content: 'hunger' }
+        ],
+        representation: {
+          worldModel: { food: 0.7, threat: 0.2, social: 0.6 },
+          attention: 'red_object'
+        },
+        intention: {
+          goal: 'approach_food',
+          alternatives: ['explore', 'flee', 'approach_food'],
+          selected: 'approach_food',
+          confidence: 0.85
+        },
+        execution: {
+          action: 'move_towards',
+          target: { x: 150, y: 200 },
+          success: true
+        }
+      }
+    };
+
+    // Widget definitions
+    const widgets = [
+      {
+        name: 'Sparkline',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 60;
+          container.appendChild(canvas);
+          const sparkline = new Sparkline(canvas, { color: '#00d4ff', fillAlpha: 0.2 });
+          sparkline.render(testData.sparkline);
+        },
+        data: testData.sparkline
+      },
+      {
+        name: 'Heatmap Widget',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 400;
+          container.appendChild(canvas);
+          const heatmap = new HeatmapWidget(canvas);
+          heatmap.render(testData.heatmap.agents, testData.heatmap.matrix);
+        },
+        data: testData.heatmap
+      },
+      {
+        name: 'Force Graph',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 300;
+          container.appendChild(canvas);
+          const graph = new ForceGraph(canvas);
+          graph.render(testData.forceGraph.nodes, testData.forceGraph.edges);
+        },
+        data: testData.forceGraph
+      },
+      {
+        name: 'Calibration Scatter',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 400;
+          container.appendChild(canvas);
+          const scatter = new CalibrationScatter(canvas);
+          scatter.render(testData.calibrationScatter.bins);
+        },
+        data: testData.calibrationScatter
+      },
+      {
+        name: 'Radar Chart',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 400;
+          canvas.height = 400;
+          container.appendChild(canvas);
+          const radar = new RadarChart(canvas);
+          radar.render(testData.radarChart.axes, testData.radarChart.values);
+        },
+        data: testData.radarChart
+      },
+      {
+        name: 'Violin Plot',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 500;
+          canvas.height: 300;
+          container.appendChild(canvas);
+          const violin = new ViolinPlot(canvas);
+          violin.render(testData.violinPlot.traits, testData.violinPlot.data);
+        },
+        data: testData.violinPlot
+      },
+      {
+        name: 'Genealogy Tree',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 500;
+          canvas.height = 400;
+          container.appendChild(canvas);
+          const tree = new GenealogyTree(canvas);
+          tree.render(testData.genealogyTree.innovations, testData.genealogyTree.adoptions);
+        },
+        data: testData.genealogyTree
+      },
+      {
+        name: 'Sankey Widget',
+        render: (container) => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 500;
+          canvas.height = 400;
+          container.appendChild(canvas);
+          const sankey = new SankeyWidget(canvas);
+          sankey.render(testData.sankeyWidget.nodes, testData.sankeyWidget.flows);
+        },
+        data: testData.sankeyWidget
+      },
+      {
+        name: 'Decision Funnel',
+        render: (container) => {
+          const panel = document.createElement('div');
+          panel.style.width = '600px';
+          panel.style.minHeight = '500px';
+          container.appendChild(panel);
+          const funnel = new DecisionFunnel(panel);
+          funnel.render(testData.decisionFunnel);
+        },
+        data: testData.decisionFunnel
+      }
+    ];
+
+    // Render catalog
+    const catalog = document.getElementById('catalog');
+    widgets.forEach(widget => {
+      const card = document.createElement('div');
+      card.className = 'widget-card';
+
+      const title = document.createElement('h2');
+      title.textContent = widget.name;
+      card.appendChild(title);
+
+      const widgetContainer = document.createElement('div');
+      widgetContainer.className = 'widget-container';
+      card.appendChild(widgetContainer);
+
+      try {
+        widget.render(widgetContainer);
+      } catch (error) {
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.textContent = `Error rendering ${widget.name}: ${error.message}\n${error.stack}`;
+        widgetContainer.innerHTML = '';
+        widgetContainer.appendChild(errorMsg);
+        console.error(`Widget render error (${widget.name}):`, error);
+      }
+
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = 'View Source Data';
+      details.appendChild(summary);
+
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(widget.data, null, 2);
+      details.appendChild(pre);
+      card.appendChild(details);
+
+      catalog.appendChild(card);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+name: "Emergent Language"
+description: "Shared symbol development and communication conventions"
+base:
+  world_width: 32
+  world_height: 32
+  max_ticks: 500
+  num_agents: 8
+  language_enabled: true
+  language_innovation_rate: 0.05
+  language_bandwidth_limit: 3
+  language_communication_range: 10
+conditions:
+  - name: "social"
+    overrides:
+      default_architecture: "social"
+  - name: "reactive"
+    overrides:
+      default_architecture: "reactive"
+replicates: 3
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+  - emergence_event_count
+output_dir: "data/experiments/benchmarks/language"
+formats: ["csv", "markdown"]
+record_trajectories: true

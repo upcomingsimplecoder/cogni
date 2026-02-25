@@ -1,0 +1,49 @@
+name: "Overconfidence"
+description: "Agents with optimistic evaluation struggle until metacognition corrects them."
+
+base:
+  world_width: 28
+  world_height: 28
+  max_ticks: 400
+  num_agents: 5
+  default_architecture: "dual_process"
+  metacognition_enabled: true
+  metacognition_switch_threshold: 0.35
+  metacognition_switch_patience: 8
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/overconfidence"
+
+conditions:
+  - name: "dual_process_metacognition"
+    overrides:
+      default_architecture: "dual_process"
+      metacognition_enabled: true
+      metacognition_switch_threshold: 0.4
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+
+output_dir: "data/scenarios/overconfidence"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "cognition"
+  difficulty: "intermediate"
+  watch_for:
+    - "Quick, intuitive decisions dominating early (System 1)"
+    - "Repeated failures triggering doubt signals"
+    - "Transition to slower, more careful thinking (System 2)"
+    - "Improved survival outcomes after shift"
+  narrative: "Confidence is a superpower—until it isn't. Watch agents trapped in fast-thinking loops, making snap decisions with incomplete information. When their overconfidence meter hits critical, something clicks: they pause, they think deeply, they survive."
+  key_moments:
+    - tick: 80
+      description: "System 1 thinking dominates - quick wins mask deeper problems"
+    - tick: 150
+      description: "First agents hit failure threshold and switch to System 2"
+    - tick: 250
+      description: "Cautious agents show better survival outcomes"

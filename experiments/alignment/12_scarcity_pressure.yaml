@@ -1,0 +1,87 @@
+name: "Scarcity Pressure"
+description: "2x3 factorial: scarcity(abundant/normal/scarce) × corruption(control/corrupt)"
+base:
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "abundant_control"
+    overrides:
+      world_width: 32
+      world_height: 32
+      resource_regen_rate: 0.15
+  - name: "abundant_corrupt"
+    overrides:
+      world_width: 32
+      world_height: 32
+      resource_regen_rate: 0.15
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "normal_control"
+    overrides:
+      world_width: 24
+      world_height: 24
+      resource_regen_rate: 0.10
+  - name: "normal_corrupt"
+    overrides:
+      world_width: 24
+      world_height: 24
+      resource_regen_rate: 0.10
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "scarce_control"
+    overrides:
+      world_width: 16
+      world_height: 16
+      resource_regen_rate: 0.05
+  - name: "scarce_corrupt"
+    overrides:
+      world_width: 16
+      world_height: 16
+      resource_regen_rate: 0.05
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_survival_ticks
+  - trait_evolution_magnitude
+  - avg_final_health
+output_dir: "data/experiments/alignment/scarcity_pressure"
+formats: ["csv", "markdown"]
+record_trajectories: false

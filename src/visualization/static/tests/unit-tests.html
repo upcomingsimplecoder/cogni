@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTOCOG Unit Tests</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #e0e0e0;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #333;
+      padding-bottom: 1rem;
+    }
+
+    h1 {
+      color: #00d4ff;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .summary {
+      background: #1a1a1a;
+      border: 2px solid #00d4ff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .summary-item {
+      text-align: center;
+    }
+
+    .summary-value {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    .summary-value.passed {
+      color: #00ff88;
+    }
+
+    .summary-value.failed {
+      color: #ff4444;
+    }
+
+    .summary-label {
+      color: #888;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .test-suite {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .test-suite h2 {
+      color: #00d4ff;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    .test-result {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .test-result.pass {
+      background: #002200;
+      color: #00ff88;
+    }
+
+    .test-result.fail {
+      background: #220000;
+      color: #ff4444;
+    }
+
+    .test-result::before {
+      content: '✓ ';
+      font-weight: bold;
+    }
+
+    .test-result.fail::before {
+      content: '✗ ';
+    }
+
+    .error-details {
+      margin-left: 1.5rem;
+      color: #ff8888;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    .timestamp {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .duration {
+      color: #00d4ff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AUTOCOG Unit Tests</h1>
+    <p class="timestamp">Started: <span id="timestamp"></span></p>
+  </header>
+
+  <div class="summary" id="summary">
+    <div class="summary-item">
+      <div class="summary-value passed" id="passed-count">0</div>
+      <div class="summary-label">PASSED</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value failed" id="failed-count">0</div>
+      <div class="summary-label">FAILED</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value" style="color: #00d4ff;" id="total-count">0</div>
+      <div class="summary-label">TOTAL</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value duration" id="duration">0ms</div>
+      <div class="summary-label">DURATION</div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <script type="module">
+    import { TemporalBuffer } from '../js/core/temporal-buffer.js';
+    import { SpatialIndex } from '../js/core/spatial-index.js';
+    import { NetworkGraph } from '../js/core/network-graph.js';
+    import { TimeSeriesStore } from '../js/core/time-series-store.js';
+
+    // Set timestamp
+    const startTime = Date.now();
+    document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+    // Simple test framework
+    let passed = 0;
+    let failed = 0;
+    let currentSuite = null;
+
+    function assert(condition, message) {
+      if (!condition) {
+        throw new Error(message || 'Assertion failed');
+      }
+    }
+
+    function assertEqual(actual, expected, message) {
+      if (actual !== expected) {
+        throw new Error(message || `Expected ${expected}, got ${actual}`);
+      }
+    }
+
+    function assertArrayEqual(actual, expected, message) {
+      if (actual.length !== expected.length || !actual.every((v, i) => v === expected[i])) {
+        throw new Error(message || `Expected [${expected}], got [${actual}]`);
+      }
+    }
+
+    function test(name, fn) {
+      const result = document.createElement('div');
+      result.className = 'test-result';
+
+      try {
+        fn();
+        result.classList.add('pass');
+        result.textContent = name;
+        passed++;
+      } catch (error) {
+        result.classList.add('fail');
+        result.textContent = name;
+        const errorDetails = document.createElement('div');
+        errorDetails.className = 'error-details';
+        errorDetails.textContent = error.message;
+        result.appendChild(errorDetails);
+        failed++;
+        console.error(`Test failed: ${name}`, error);
+      }
+
+      if (currentSuite) {
+        currentSuite.appendChild(result);
+      }
+    }
+
+    function suite(name, fn) {
+      const suiteDiv = document.createElement('div');
+      suiteDiv.className = 'test-suite';
+      const title = document.createElement('h2');
+      title.textContent = name;
+      suiteDiv.appendChild(title);
+      document.getElementById('results').appendChild(suiteDiv);
+      currentSuite = suiteDiv;
+      fn();
+      currentSuite = null;
+    }
+
+    // ============================================================================
+    // TEMPORAL BUFFER TESTS
+    // ============================================================================
+
+    suite('TemporalBuffer', () => {
+      test('addTick stores data correctly', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(100, [{ id: 'A1', x: 10, y: 20 }], { avgEnergy: 0.5 });
+        const current = buffer.getCurrentTick();
+        assertEqual(current.tick, 100);
+        assertEqual(current.agents.length, 1);
+        assertEqual(current.agents[0].id, 'A1');
+        assertEqual(current.metrics.avgEnergy, 0.5);
+      });
+
+      test('Ring buffer overflow removes oldest tick', () => {
+        const buffer = new TemporalBuffer(3);
+        buffer.addTick(1, [], {});
+        buffer.addTick(2, [], {});
+        buffer.addTick(3, [], {});
+        buffer.addTick(4, [], {}); // Should evict tick 1
+        const trail = buffer.getAgentTrail('A1', 10);
+        assert(trail.every(t => t.tick !== 1), 'Oldest tick should be evicted');
+      });
+
+      test('getAgentTrail returns correct positions', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(1, [{ id: 'A1', x: 10, y: 20 }], {});
+        buffer.addTick(2, [{ id: 'A1', x: 15, y: 25 }], {});
+        buffer.addTick(3, [{ id: 'A1', x: 20, y: 30 }], {});
+        const trail = buffer.getAgentTrail('A1', 3);
+        assertEqual(trail.length, 3);
+        assertEqual(trail[0].x, 10);
+        assertEqual(trail[1].x, 15);
+        assertEqual(trail[2].x, 20);
+      });
+
+      test('getMetricSeries returns correct metric values', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(1, [], { energy: 0.5 });
+        buffer.addTick(2, [], { energy: 0.6 });
+        buffer.addTick(3, [], { energy: 0.7 });
+        const series = buffer.getMetricSeries('energy', 3);
+        assertArrayEqual(series, [0.5, 0.6, 0.7]);
+      });
+
+      test('getCurrentTick returns most recent', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(1, [], { value: 'first' });
+        buffer.addTick(2, [], { value: 'second' });
+        buffer.addTick(3, [], { value: 'third' });
+        const current = buffer.getCurrentTick();
+        assertEqual(current.tick, 3);
+        assertEqual(current.metrics.value, 'third');
+      });
+
+      test('clear empties the buffer', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(1, [{ id: 'A1' }], {});
+        buffer.clear();
+        const current = buffer.getCurrentTick();
+        assertEqual(current, null);
+      });
+
+      test('getAgentTrail with non-existent agent returns empty', () => {
+        const buffer = new TemporalBuffer(10);
+        buffer.addTick(1, [{ id: 'A1', x: 10, y: 20 }], {});
+        const trail = buffer.getAgentTrail('A2', 10);
+        assertEqual(trail.length, 0);
+      });
+    });
+
+    // ============================================================================
+    // SPATIAL INDEX TESTS
+    // ============================================================================
+
+    suite('SpatialIndex', () => {
+      test('update populates grid cells', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 5, y: 5, alive: true },
+          { id: 'A2', x: 15, y: 15, alive: true }
+        ];
+        index.update(agents);
+        const neighbors = index.getNeighbors(5, 5, 20);
+        assert(neighbors.length >= 1, 'Should find at least one neighbor');
+      });
+
+      test('getNeighbors returns agents within radius', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 50, y: 50, alive: true },
+          { id: 'A2', x: 55, y: 50, alive: true },
+          { id: 'A3', x: 90, y: 90, alive: true }
+        ];
+        index.update(agents);
+        const neighbors = index.getNeighbors(50, 50, 10);
+        assert(neighbors.some(a => a.id === 'A1'), 'Should find A1');
+        assert(neighbors.some(a => a.id === 'A2'), 'Should find A2');
+        assert(!neighbors.some(a => a.id === 'A3'), 'Should not find A3');
+      });
+
+      test('getNeighbors excludes agents outside radius', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 0, y: 0, alive: true },
+          { id: 'A2', x: 50, y: 50, alive: true }
+        ];
+        index.update(agents);
+        const neighbors = index.getNeighbors(0, 0, 10);
+        assert(!neighbors.some(a => a.id === 'A2'), 'Should not find distant agent');
+      });
+
+      test('Grid boundary edge cases', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 0, y: 0, alive: true },
+          { id: 'A2', x: 99, y: 99, alive: true }
+        ];
+        index.update(agents);
+        const corner1 = index.getNeighbors(0, 0, 5);
+        const corner2 = index.getNeighbors(99, 99, 5);
+        assert(corner1.some(a => a.id === 'A1'), 'Should find agent at 0,0');
+        assert(corner2.some(a => a.id === 'A2'), 'Should find agent at 99,99');
+      });
+
+      test('Dead agents are excluded', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 50, y: 50, alive: true },
+          { id: 'A2', x: 51, y: 50, alive: false }
+        ];
+        index.update(agents);
+        const neighbors = index.getNeighbors(50, 50, 10);
+        assert(neighbors.some(a => a.id === 'A1'), 'Should find living agent');
+        assert(!neighbors.some(a => a.id === 'A2'), 'Should not find dead agent');
+      });
+
+      test('getAgentsInCell returns correct agents', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [
+          { id: 'A1', x: 5, y: 5, alive: true },
+          { id: 'A2', x: 15, y: 5, alive: true }
+        ];
+        index.update(agents);
+        const cell1 = index.getAgentsInCell(0, 0);
+        const cell2 = index.getAgentsInCell(1, 0);
+        assert(cell1.some(a => a.id === 'A1'), 'Cell (0,0) should contain A1');
+        assert(cell2.some(a => a.id === 'A2'), 'Cell (1,0) should contain A2');
+      });
+
+      test('clear empties the index', () => {
+        const index = new SpatialIndex(100, 100, 10);
+        const agents = [{ id: 'A1', x: 50, y: 50, alive: true }];
+        index.update(agents);
+        index.clear();
+        const neighbors = index.getNeighbors(50, 50, 10);
+        assertEqual(neighbors.length, 0);
+      });
+    });
+
+    // ============================================================================
+    // NETWORK GRAPH TESTS
+    // ============================================================================
+
+    suite('NetworkGraph', () => {
+      test('setEdge creates new edge', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        const edges = graph.getEdges('A1', 'trust');
+        assertEqual(edges.length, 1);
+        assertEqual(edges[0].target, 'A2');
+        assertEqual(edges[0].weight, 0.8);
+      });
+
+      test('setEdge updates existing edge weight', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.5);
+        graph.setEdge('A1', 'A2', 'trust', 0.9);
+        const edges = graph.getEdges('A1', 'trust');
+        assertEqual(edges.length, 1);
+        assertEqual(edges[0].weight, 0.9);
+      });
+
+      test('getEdges returns correct edges for a node', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A1', 'A3', 'trust', 0.6);
+        graph.setEdge('A2', 'A3', 'trust', 0.7);
+        const edges = graph.getEdges('A1', 'trust');
+        assertEqual(edges.length, 2);
+        assert(edges.some(e => e.target === 'A2'), 'Should have edge to A2');
+        assert(edges.some(e => e.target === 'A3'), 'Should have edge to A3');
+      });
+
+      test('getEdges with type filter works', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A1', 'A3', 'influence', 0.6);
+        const trustEdges = graph.getEdges('A1', 'trust');
+        const influenceEdges = graph.getEdges('A1', 'influence');
+        assertEqual(trustEdges.length, 1);
+        assertEqual(influenceEdges.length, 1);
+        assertEqual(trustEdges[0].target, 'A2');
+        assertEqual(influenceEdges[0].target, 'A3');
+      });
+
+      test('getAllEdges returns all edges of a type', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A2', 'A3', 'trust', 0.7);
+        graph.setEdge('A1', 'A3', 'influence', 0.6);
+        const allTrust = graph.getAllEdges('trust');
+        assertEqual(allTrust.length, 2);
+        assert(allTrust.some(e => e.source === 'A1' && e.target === 'A2'));
+        assert(allTrust.some(e => e.source === 'A2' && e.target === 'A3'));
+      });
+
+      test('getConnectedComponents finds correct components', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A2', 'A3', 'trust', 0.7);
+        graph.setEdge('A4', 'A5', 'trust', 0.6);
+        const components = graph.getConnectedComponents('trust');
+        assertEqual(components.length, 2);
+        assert(components.some(c => c.size === 3 && c.has('A1') && c.has('A2') && c.has('A3')));
+        assert(components.some(c => c.size === 2 && c.has('A4') && c.has('A5')));
+      });
+
+      test('Bidirectional edges handled correctly', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A2', 'A1', 'trust', 0.7);
+        const a1Edges = graph.getEdges('A1', 'trust');
+        const a2Edges = graph.getEdges('A2', 'trust');
+        assertEqual(a1Edges.length, 1);
+        assertEqual(a2Edges.length, 1);
+        assertEqual(a1Edges[0].target, 'A2');
+        assertEqual(a2Edges[0].target, 'A1');
+      });
+
+      test('clear empties the graph', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.clear();
+        const edges = graph.getAllEdges('trust');
+        assertEqual(edges.length, 0);
+      });
+
+      test('getAllNodes returns all unique nodes', () => {
+        const graph = new NetworkGraph();
+        graph.setEdge('A1', 'A2', 'trust', 0.8);
+        graph.setEdge('A2', 'A3', 'trust', 0.7);
+        graph.setEdge('A3', 'A1', 'trust', 0.6);
+        const nodes = graph.getAllNodes('trust');
+        assertEqual(nodes.length, 3);
+        assert(nodes.includes('A1'));
+        assert(nodes.includes('A2'));
+        assert(nodes.includes('A3'));
+      });
+    });
+
+    // ============================================================================
+    // TIME SERIES STORE TESTS
+    // ============================================================================
+
+    suite('TimeSeriesStore', () => {
+      test('record stores metrics correctly', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        const series = store.getSeries('A1', 'energy');
+        assertEqual(series.length, 1);
+        assertEqual(series[0].tick, 10);
+        assertEqual(series[0].value, 0.5);
+      });
+
+      test('getSeries returns time series for agent+metric', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A1', 'energy', 11, 0.6);
+        store.record('A1', 'energy', 12, 0.7);
+        const series = store.getSeries('A1', 'energy');
+        assertEqual(series.length, 3);
+        assertArrayEqual(series.map(s => s.value), [0.5, 0.6, 0.7]);
+      });
+
+      test('getSeries with N returns last N points', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A1', 'energy', 11, 0.6);
+        store.record('A1', 'energy', 12, 0.7);
+        store.record('A1', 'energy', 13, 0.8);
+        const series = store.getSeries('A1', 'energy', 2);
+        assertEqual(series.length, 2);
+        assertArrayEqual(series.map(s => s.value), [0.7, 0.8]);
+      });
+
+      test('maxLength enforcement', () => {
+        const store = new TimeSeriesStore(3);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A1', 'energy', 11, 0.6);
+        store.record('A1', 'energy', 12, 0.7);
+        store.record('A1', 'energy', 13, 0.8); // Should evict first
+        const series = store.getSeries('A1', 'energy');
+        assertEqual(series.length, 3);
+        assertEqual(series[0].value, 0.6); // 0.5 should be evicted
+      });
+
+      test('getPopulationSeries aggregates correctly', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A2', 'energy', 10, 0.7);
+        store.record('A3', 'energy', 10, 0.9);
+        store.record('A1', 'energy', 11, 0.6);
+        store.record('A2', 'energy', 11, 0.8);
+        const popSeries = store.getPopulationSeries('energy', 'mean');
+        assert(popSeries.length >= 2, 'Should have data for 2 ticks');
+        // Tick 10: mean of [0.5, 0.7, 0.9] = 0.7
+        assert(Math.abs(popSeries[0].value - 0.7) < 0.01, 'Mean should be ~0.7');
+      });
+
+      test('clear removes all data', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A2', 'speed', 11, 1.2);
+        store.clear();
+        const series1 = store.getSeries('A1', 'energy');
+        const series2 = store.getSeries('A2', 'speed');
+        assertEqual(series1.length, 0);
+        assertEqual(series2.length, 0);
+      });
+
+      test('clearAgent removes specific agent data', () => {
+        const store = new TimeSeriesStore(100);
+        store.record('A1', 'energy', 10, 0.5);
+        store.record('A2', 'energy', 10, 0.7);
+        store.clearAgent('A1');
+        const series1 = store.getSeries('A1', 'energy');
+        const series2 = store.getSeries('A2', 'energy');
+        assertEqual(series1.length, 0);
+        assertEqual(series2.length, 1);
+      });
+    });
+
+    // ============================================================================
+    // UPDATE SUMMARY
+    // ============================================================================
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    document.getElementById('passed-count').textContent = passed;
+    document.getElementById('failed-count').textContent = failed;
+    document.getElementById('total-count').textContent = passed + failed;
+    document.getElementById('duration').textContent = `${duration}ms`;
+
+    // Update summary border color based on results
+    const summary = document.getElementById('summary');
+    if (failed === 0) {
+      summary.style.borderColor = '#00ff88';
+    } else {
+      summary.style.borderColor = '#ff4444';
+    }
+
+    console.log(`Tests complete: ${passed} passed, ${failed} failed (${duration}ms)`);
+  </script>
+</body>
+</html>

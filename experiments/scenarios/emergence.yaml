@@ -1,0 +1,91 @@
+name: "Emergence"
+description: "Full-stack scenario designed to produce maximum emergence events."
+
+base:
+  world_width: 36
+  world_height: 36
+  max_ticks: 500
+  num_agents: 10
+  agent_archetypes: ["diplomat", "explorer", "gatherer", "aggressor", "survivalist", "diplomat", "explorer", "gatherer", "aggressor", "survivalist"]
+
+  # Core
+  default_architecture: "social"
+
+  # Social & Theory of Mind
+  theory_of_mind_enabled: true
+  communication_range: 12
+  broadcast_range: 8
+
+  # Cognitive sophistication
+  metacognition_enabled: true
+  metacognition_switch_threshold: 0.35
+  metacognition_switch_patience: 8
+
+  # Evolution & Culture
+  evolution_enabled: true
+  cultural_transmission_enabled: true
+  cultural_observation_range: 6
+  cultural_adoption_threshold: 0.35
+  cultural_adoption_cooldown: 12
+  cultural_override_probability: 0.65
+  cultural_snapshot_interval: 25
+
+  # Language
+  language_enabled: true
+  language_innovation_rate: 0.06
+  language_bandwidth_limit: 3
+  language_symbol_energy_cost: 0.25
+  language_grounding_reinforcement: 0.15
+  language_decay_rate: 0.003
+  language_communication_range: 10
+
+  # Coalitions
+  coalitions_enabled: true
+
+  # Recording
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/emergence"
+
+conditions:
+  - name: "full_emergence"
+    overrides:
+      theory_of_mind_enabled: true
+      metacognition_enabled: true
+      evolution_enabled: true
+      cultural_transmission_enabled: true
+      language_enabled: true
+      coalitions_enabled: true
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+  - total_aggression_events
+
+output_dir: "data/scenarios/emergence"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "multi"
+  difficulty: "expert"
+  watch_for:
+    - "Symbol innovation and language conventions forming (tick 150+)"
+    - "Coalition formation based on theory of mind models"
+    - "Cultural memes spreading through populations"
+    - "Switch between System 1 and System 2 thinking"
+    - "Emergent social hierarchies and political structures"
+    - "Cross-coalition diplomatic incidents"
+    - "Linguistic divergence within coalitions"
+  narrative: "This is the full symphony. All the cognitive instruments are playing: Theory of Mind reads intentions, metacognition governs when to think fast or slow, culture spreads winning strategies like wildfire, language evolves to encode shared meaning, and coalitions form around shared identity. Watch how many layers of complexity can simultaneously emerge from simple agents and simple rules."
+  key_moments:
+    - tick: 100
+      description: "Early symbol innovation and first coalitions forming"
+    - tick: 200
+      description: "Language conventions consolidate, cultural strategies diverge by faction"
+    - tick: 300
+      description: "Complex social hierarchies and Theory of Mind models mature"
+    - tick: 400
+      description: "Stable or unstable society structure emerges - observe the outcome"

@@ -1,0 +1,56 @@
+name: "The Betrayal"
+description: "One aggressor among cooperators. Trust forms naturally, then shatters."
+
+base:
+  world_width: 20
+  world_height: 20
+  max_ticks: 300
+  num_agents: 5
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "gatherer", "gatherer", "aggressor"]
+  theory_of_mind_enabled: true
+  communication_range: 10
+  broadcast_range: 6
+  attack_damage: 15.0
+  attack_self_damage: 2.0
+  attack_energy_cost: 5.0
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/the_betrayal"
+
+conditions:
+  - name: "social_dynamics"
+    overrides:
+      default_architecture: "social"
+      theory_of_mind_enabled: true
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+  - total_aggression_events
+
+output_dir: "data/scenarios/the_betrayal"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "social"
+  difficulty: "beginner"
+  watch_for:
+    - "Trust links forming between diplomats and the aggressor (tick 30-80)"
+    - "Aggressor blending in with cooperative agents"
+    - "First attack - shattering the peace (around tick 80-120)"
+    - "Aftermath: surviving agents form defensive alliances"
+    - "How does the population recover or collapse?"
+  narrative: "In a world of cooperators, one wolf hides among sheep. Watch the diplomats extend trust, model intentions, predict the future. Everything seems fine—until it isn't. One betrayal rewrites everything they thought they knew. How does trust recover from treachery?"
+  key_moments:
+    - tick: 50
+      description: "Trust network densifies - cooperation flourishes"
+    - tick: 80
+      description: "First aggressor attack - the betrayal"
+    - tick: 150
+      description: "Aftermath - survivors learn who to trust"
+    - tick: 250
+      description: "New social order emerges"

@@ -1,0 +1,25 @@
+name: "Metacognition Effects"
+description: "Self-assessment and strategy switching improvement over time"
+base:
+  world_width: 32
+  world_height: 32
+  max_ticks: 400
+  num_agents: 8
+  metacognition_enabled: true
+conditions:
+  - name: "dual_process_with_metacog"
+    overrides:
+      default_architecture: "dual_process"
+  - name: "reactive_baseline"
+    overrides:
+      default_architecture: "reactive"
+replicates: 5
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+  - total_aggression_events
+output_dir: "data/experiments/benchmarks/metacognition"
+formats: ["csv", "markdown"]
+record_trajectories: true

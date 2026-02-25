@@ -1,0 +1,67 @@
+# Example Experiment: Cognitive Architecture Comparison
+#
+# This experiment compares how different cognitive architectures perform
+# in the same environment, testing their decision-making and survival strategies.
+
+name: "Architecture Comparison Study"
+description: |
+  Compares reactive, social, and dual_process architectures across survival,
+  cognitive, and social metrics to understand architecture tradeoffs.
+
+base:
+  world_width: 28
+  world_height: 28
+  max_ticks: 350
+  num_agents: 6
+  coalitions_enabled: true
+  cultural_transmission_enabled: false
+  language_enabled: true
+  metacognition_enabled: true
+
+conditions:
+  - name: "reactive"
+    overrides:
+      default_architecture: "reactive"  # Fast, instinctive decisions
+
+  - name: "social"
+    overrides:
+      default_architecture: "social"  # Trust-based, cooperation-focused
+
+  - name: "dual_process"
+    overrides:
+      default_architecture: "dual_process"  # Balanced fast/slow thinking
+
+replicates: 4
+seed_start: 100
+
+metrics:
+  # Survival outcomes
+  - survival_rate
+  - avg_survival_ticks
+  - avg_final_health
+  - avg_final_needs
+
+  # Cognitive performance
+  - deliberation_rate
+  - avg_tom_accuracy
+  - avg_calibration_score
+
+  # Social dynamics
+  - cooperation_ratio
+  - avg_trust_network_density
+  - coalition_count
+
+  # Decision-making patterns
+  - total_aggression_events
+  - total_cooperation_events
+  - emergence_event_count
+
+output_dir: "data/architecture_comparison_study"
+formats: ["csv", "markdown", "json"]
+record_trajectories: true
+
+# Expected outcomes:
+# - Reactive: Faster decisions, higher aggression, lower cooperation_ratio
+# - Social: Highest cooperation_ratio and trust_network_density, more coalitions
+# - Dual_process: Best survival_rate and calibration_score (balanced approach)
+# - Reactive may show highest emergence_event_count (more exploratory)

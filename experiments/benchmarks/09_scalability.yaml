@@ -1,0 +1,24 @@
+name: "Scalability Test"
+description: "System stability at maximum population with larger world"
+base:
+  world_width: 48
+  world_height: 48
+  max_ticks: 200
+  num_agents: 15
+  max_population: 15
+conditions:
+  - name: "reactive"
+    overrides:
+      default_architecture: "reactive"
+  - name: "dual_process"
+    overrides:
+      default_architecture: "dual_process"
+replicates: 3
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - avg_final_health
+output_dir: "data/experiments/benchmarks/scalability"
+formats: ["csv", "markdown"]
+record_trajectories: true

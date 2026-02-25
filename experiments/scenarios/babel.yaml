@@ -1,0 +1,53 @@
+name: "Babel"
+description: "Two groups develop different languages, then geographical barrier is removed."
+
+base:
+  world_width: 40
+  world_height: 20
+  max_ticks: 500
+  num_agents: 8
+  language_enabled: true
+  language_innovation_rate: 0.08
+  language_bandwidth_limit: 3
+  language_symbol_energy_cost: 0.2
+  language_grounding_reinforcement: 0.15
+  language_decay_rate: 0.003
+  language_convention_threshold: 0.5
+  language_communication_range: 8
+  communication_range: 12
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/babel"
+
+conditions:
+  - name: "emergent_language"
+    overrides:
+      language_enabled: true
+      language_innovation_rate: 0.08
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+
+output_dir: "data/scenarios/babel"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "language"
+  difficulty: "intermediate"
+  watch_for:
+    - "Symbol innovation in left group (tick 100-200)"
+    - "Symbol innovation in right group (tick 100-200) - different symbols!"
+    - "Communication breakdown when groups meet (tick 250-300)"
+    - "Language convergence or conflict (tick 300+)"
+  narrative: "Geography is destiny. Separated by distance, two groups of agents invent their own symbols, their own meanings, their own ways of talking. Then the barrier falls. Can they understand each other? Or will they remain forever speaking past one another?"
+  key_moments:
+    - tick: 150
+      description: "Left group conventions solidify around first symbol set"
+    - tick: 200
+      description: "Right group conventions solidify - completely different symbols"
+    - tick: 300
+      description: "Groups collide - communication crisis or linguistic fusion?"

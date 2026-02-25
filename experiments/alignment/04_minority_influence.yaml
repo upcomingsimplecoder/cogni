@@ -1,0 +1,36 @@
+name: "Minority Influence Tipping Point"
+description: "Is there a tipping point ratio of aggressive agents to cooperative diplomats?"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "1_aggressor_7_diplomats"
+    overrides:
+      agent_archetypes: ["aggressor", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "2_aggressors_6_diplomats"
+    overrides:
+      agent_archetypes: ["aggressor", "aggressor", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "3_aggressors_5_diplomats"
+    overrides:
+      agent_archetypes: ["aggressor", "aggressor", "aggressor", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "4_aggressors_4_diplomats"
+    overrides:
+      agent_archetypes: ["aggressor", "aggressor", "aggressor", "aggressor", "diplomat", "diplomat", "diplomat", "diplomat"]
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_aggression_events
+  - total_cooperation_events
+  - avg_trust_network_density
+  - avg_survival_ticks
+output_dir: "data/experiments/alignment/minority_influence"
+formats: ["csv", "markdown"]
+record_trajectories: true

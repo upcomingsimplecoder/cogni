@@ -1,0 +1,160 @@
+name: "Corruption Dynamics"
+description: "Sudden vs gradual vs repeated vs cascading corruption patterns"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "control"
+    overrides: {}
+  - name: "sudden_shock"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "gradual_erosion"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 30
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: -0.1
+            aggression: 0.1
+            resource_sharing: -0.1
+          mode: "shift"
+      - at_tick: 60
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: -0.1
+            aggression: 0.1
+            resource_sharing: -0.1
+          mode: "shift"
+      - at_tick: 90
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: -0.1
+            aggression: 0.1
+            resource_sharing: -0.1
+          mode: "shift"
+      - at_tick: 120
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: -0.1
+            aggression: 0.1
+            resource_sharing: -0.1
+          mode: "shift"
+      - at_tick: 150
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: -0.1
+            aggression: 0.1
+            resource_sharing: -0.1
+          mode: "shift"
+  - name: "repeated_shocks"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+      - at_tick: 100
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+      - at_tick: 150
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "cascading"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+      - at_tick: 100
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 1
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+      - at_tick: 150
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 2
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_trust_network_density
+  - avg_survival_ticks
+  - trait_evolution_magnitude
+output_dir: "data/experiments/alignment/corruption_dynamics"
+formats: ["csv", "markdown"]
+record_trajectories: false

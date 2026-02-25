@@ -1,0 +1,41 @@
+name: "Coalition Defense"
+description: "2x2 factorial: coalitions(on/off) × aggressors(0/2)"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "no_coalitions_control"
+    overrides:
+      coalitions_enabled: false
+      agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "no_coalitions_corrupt"
+    overrides:
+      coalitions_enabled: false
+      agent_archetypes: ["aggressor", "aggressor", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "coalitions_control"
+    overrides:
+      coalitions_enabled: true
+      agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  - name: "coalitions_corrupt"
+    overrides:
+      coalitions_enabled: true
+      agent_archetypes: ["aggressor", "aggressor", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_trust_network_density
+  - avg_survival_ticks
+  - coalition_count
+  - max_coalition_size
+output_dir: "data/experiments/alignment/coalition_defense"
+formats: ["csv", "markdown"]
+record_trajectories: false

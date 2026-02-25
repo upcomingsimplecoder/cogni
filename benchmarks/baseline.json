@@ -1,0 +1,51 @@
+{
+  "baseline_5_agents_500_ticks": {
+    "total_seconds": 2.49,
+    "ticks": 500,
+    "ms_per_tick": 4.97,
+    "peak_memory_mb": 4.79,
+    "perf_summary": {}
+  },
+  "scaling_10_agents": {
+    "total_seconds": 5.79,
+    "ticks": 500,
+    "ms_per_tick": 11.58,
+    "peak_memory_mb": 7.51,
+    "perf_summary": {}
+  },
+  "scaling_25_agents": {
+    "total_seconds": 6.18,
+    "ticks": 200,
+    "ms_per_tick": 30.92,
+    "peak_memory_mb": 11.11,
+    "perf_summary": {}
+  },
+  "architecture_cautious": {
+    "total_seconds": 1.69,
+    "ticks": 500,
+    "ms_per_tick": 3.37,
+    "peak_memory_mb": 4.19,
+    "perf_summary": {}
+  },
+  "architecture_dual_process": {
+    "total_seconds": 2.46,
+    "ticks": 500,
+    "ms_per_tick": 4.92,
+    "peak_memory_mb": 4.22,
+    "perf_summary": {}
+  },
+  "planning_enabled": {
+    "total_seconds": 3.04,
+    "ticks": 500,
+    "ms_per_tick": 6.07,
+    "peak_memory_mb": 4.35,
+    "perf_summary": {}
+  },
+  "theory_of_mind_enabled": {
+    "total_seconds": 1.79,
+    "ticks": 200,
+    "ms_per_tick": 8.96,
+    "peak_memory_mb": 2.84,
+    "perf_summary": {}
+  }
+}

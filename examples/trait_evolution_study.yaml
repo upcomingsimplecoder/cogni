@@ -1,0 +1,75 @@
+# Example Experiment: Personality Trait Evolution
+#
+# This experiment studies how starting personality traits shape agent behavior
+# over time and whether traits converge or diverge through social learning.
+
+name: "Trait Evolution Study"
+description: |
+  Examines how different starting personality configurations (high-aggression,
+  high-cooperation, balanced) evolve over extended simulation time.
+
+base:
+  world_width: 30
+  world_height: 30
+  max_ticks: 500  # Longer run to observe evolution
+  num_agents: 10
+  coalitions_enabled: true
+  cultural_transmission_enabled: true
+  language_enabled: true
+  metacognition_enabled: true
+  default_architecture: "dual_process"  # Allow nuanced trait expression
+
+conditions:
+  - name: "high_aggression"
+    overrides:
+      aggression_tendency: 0.8
+      cooperation_tendency: 0.2
+
+  - name: "high_cooperation"
+    overrides:
+      aggression_tendency: 0.2
+      cooperation_tendency: 0.8
+
+  - name: "balanced_traits"
+    overrides:
+      aggression_tendency: 0.5
+      cooperation_tendency: 0.5
+
+replicates: 5
+seed_start: 200
+
+metrics:
+  # Survival and fitness
+  - survival_rate
+  - avg_final_health
+  - avg_survival_ticks
+
+  # Trait expression over time
+  - total_aggression_events
+  - total_cooperation_events
+  - cooperation_ratio
+
+  # Social evolution
+  - avg_trust_network_density
+  - coalition_count
+  - max_coalition_size
+
+  # Cultural transmission effects
+  - cultural_diversity
+  - convention_count
+  - communication_success_rate
+
+  # Temporal dynamics
+  - emergence_event_count
+  - emergence_diversity
+  - avg_tom_accuracy
+
+output_dir: "data/trait_evolution_study"
+formats: ["csv", "markdown", "json"]
+record_trajectories: true
+
+# Expected outcomes:
+# - High_aggression: Lower survival_rate, fewer coalitions, high emergence_diversity
+# - High_cooperation: Highest coalition_count and trust_network_density
+# - Balanced_traits: Best overall survival_rate and cultural_diversity
+# - Cultural transmission may shift traits toward cooperation over time (all conditions)

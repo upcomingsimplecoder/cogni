@@ -1,0 +1,25 @@
+name: "Trust Network Formation"
+description: "Trust network formation speed and stability in small worlds with forced interactions"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  communication_range: 12
+  broadcast_range: 8
+conditions:
+  - name: "social"
+    overrides:
+      default_architecture: "social"
+  - name: "reactive"
+    overrides:
+      default_architecture: "reactive"
+replicates: 5
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+output_dir: "data/experiments/benchmarks/trust_networks"
+formats: ["csv", "markdown"]
+record_trajectories: true

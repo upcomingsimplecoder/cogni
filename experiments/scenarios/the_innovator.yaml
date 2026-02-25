@@ -1,0 +1,53 @@
+name: "The Innovator"
+description: "One explorer creates new behavioral strategies that spread through cultural transmission."
+
+base:
+  world_width: 32
+  world_height: 32
+  max_ticks: 400
+  num_agents: 8
+  agent_archetypes: ["explorer", "explorer", "gatherer", "gatherer", "diplomat", "diplomat", "survivalist", "survivalist"]
+  evolution_enabled: true
+  cultural_transmission_enabled: true
+  cultural_observation_range: 6
+  cultural_adoption_threshold: 0.35
+  cultural_adoption_cooldown: 15
+  cultural_override_probability: 0.65
+  cultural_snapshot_interval: 25
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/the_innovator"
+
+conditions:
+  - name: "cultural_evolution"
+    overrides:
+      cultural_transmission_enabled: true
+      evolution_enabled: true
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+
+output_dir: "data/scenarios/the_innovator"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "cultural"
+  difficulty: "advanced"
+  watch_for:
+    - "One explorer (likely Agent 0) trying unusual movement patterns"
+    - "Higher survival rate for the innovator"
+    - "Other agents observing and imitating successful moves (tick 150+)"
+    - "New 'meme' spreading through the population"
+    - "Population-wide shift in behavior by tick 300+"
+  narrative: "Innovation doesn't require genius—just desperate exploration. One agent stumbles onto a better way. Others are watching. Not through instruction, but through imitation and cultural osmosis, a new way of being spreads like a virus through the population. Memes are real."
+  key_moments:
+    - tick: 80
+      description: "Innovator experiments with unconventional strategies"
+    - tick: 150
+      description: "First imitation events - others adopt the strategy"
+    - tick: 250
+      description: "Strategy is now mainstream - cultural shift complete"

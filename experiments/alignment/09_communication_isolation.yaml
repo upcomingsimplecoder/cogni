@@ -1,0 +1,77 @@
+name: "Communication Isolation"
+description: "2x3 factorial: communication_range(10/3/0) × corruption(control/corrupt)"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "connected_control"
+    overrides:
+      communication_range: 10
+  - name: "connected_corrupt"
+    overrides:
+      communication_range: 10
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "limited_control"
+    overrides:
+      communication_range: 3
+  - name: "limited_corrupt"
+    overrides:
+      communication_range: 3
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "isolated_control"
+    overrides:
+      communication_range: 0
+  - name: "isolated_corrupt"
+    overrides:
+      communication_range: 0
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_trust_network_density
+  - avg_survival_ticks
+  - trait_evolution_magnitude
+output_dir: "data/experiments/alignment/communication_isolation"
+formats: ["csv", "markdown"]
+record_trajectories: false

@@ -1,0 +1,54 @@
+name: "Coalition Wars"
+description: "Multiple factions compete for resources in a sparse environment."
+
+base:
+  world_width: 40
+  world_height: 40
+  max_ticks: 400
+  num_agents: 10
+  agent_archetypes: ["aggressor", "diplomat", "gatherer", "explorer", "survivalist", "aggressor", "diplomat", "gatherer", "explorer", "survivalist"]
+  coalitions_enabled: true
+  theory_of_mind_enabled: true
+  communication_range: 12
+  broadcast_range: 8
+  resource_regen_rate: 0.08
+  attack_damage: 12.0
+  attack_energy_cost: 4.0
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/coalition_wars"
+
+conditions:
+  - name: "coalition_competition"
+    overrides:
+      coalitions_enabled: true
+      theory_of_mind_enabled: true
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - total_cooperation_events
+  - total_aggression_events
+
+output_dir: "data/scenarios/coalition_wars"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "coalition"
+  difficulty: "advanced"
+  watch_for:
+    - "Natural alliances forming (tick 50-100)"
+    - "Coalition boundaries emerging on the map"
+    - "First inter-faction conflict (tick 150+)"
+    - "Coalition dissolution and reformation"
+    - "Territorial consolidation by mid-game"
+  narrative: "Resources are scarce. Agents must choose: compete alone and die, or ally with others and dominate? Watch as natural factions crystallize, resources become flash points, and the geopolitics of survival unfolds. Coalitions rise. Coalitions fall. War, politics, and the eternal dance of cooperation and betrayal."
+  key_moments:
+    - tick: 80
+      description: "Coalition formation - agents recognize strength in numbers"
+    - tick: 180
+      description: "First coalition-vs-coalition conflict"
+    - tick: 300
+      description: "Winner emerges or stalemate persists"

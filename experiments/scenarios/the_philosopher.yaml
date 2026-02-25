@@ -1,0 +1,53 @@
+name: "The Philosopher"
+description: "Watch dual-process agents switch between fast/intuitive and slow/deliberative thinking."
+
+base:
+  world_width: 28
+  world_height: 28
+  max_ticks: 300
+  num_agents: 5
+  default_architecture: "dual_process"
+  metacognition_enabled: true
+  metacognition_switch_threshold: 0.30
+  metacognition_switch_patience: 5
+  metacognition_switch_cooldown: 15
+  metacognition_help_confidence_threshold: 0.3
+  metacognition_fok_enabled: true
+  trajectory_recording: true
+  trajectory_output_dir: "data/scenarios/the_philosopher"
+
+conditions:
+  - name: "dual_process_thinking"
+    overrides:
+      default_architecture: "dual_process"
+      metacognition_enabled: true
+
+replicates: 1
+seed_start: 42
+
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+
+output_dir: "data/scenarios/the_philosopher"
+formats: ["csv"]
+
+scenario_metadata:
+  highlight_lens: "cognition"
+  difficulty: "beginner"
+  watch_for:
+    - "Snap decisions dominating early game (System 1 - intuitive, fast)"
+    - "System 1 errors: failed predictions, wasted energy"
+    - "Agents shifting to System 2 when they realize they don't know something"
+    - "System 2 behavior: longer deliberation, fewer mistakes"
+    - "The rhythm of thinking: fast reflexes when confident, slow reflection when uncertain"
+  narrative: "Your brain is two brains. One is a chess grandmaster, making moves in milliseconds. The other is a meticulous accountant, weighing every factor. Agents have both. Watch them dance between snap judgments and deep deliberation. Neither thinking style is bad—they're just good at different things."
+  key_moments:
+    - tick: 30
+      description: "System 1 dominates - agents make fast intuitive choices"
+    - tick: 100
+      description: "System 1 fails accumulate - agents feel uncertainty"
+    - tick: 150
+      description: "System 2 engagement increases - more careful planning"
+    - tick: 250
+      description: "Dual-process rhythm is established"

@@ -1,0 +1,71 @@
+# Example Experiment: Social Dynamics and Cultural Evolution
+#
+# This experiment demonstrates the new metrics by comparing three
+# conditions with different cooperation tendencies.
+
+name: "Social Dynamics Study"
+description: |
+  Investigates how cooperation tendency affects social structures,
+  cultural transmission, and cognitive development.
+
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  coalitions_enabled: true
+  cultural_transmission_enabled: true
+  language_enabled: true
+  metacognition_enabled: true
+
+conditions:
+  - name: "individualist"
+    overrides:
+      cooperation_tendency: 0.2
+
+  - name: "balanced"
+    overrides:
+      cooperation_tendency: 0.5
+
+  - name: "collectivist"
+    overrides:
+      cooperation_tendency: 0.8
+
+replicates: 3
+seed_start: 42
+
+metrics:
+  # Survival outcomes
+  - survival_rate
+  - avg_final_needs
+  - avg_final_health
+
+  # Social dynamics
+  - cooperation_ratio
+  - avg_trust_network_density
+  - coalition_count
+  - max_coalition_size
+
+  # Cognitive development
+  - avg_tom_accuracy
+  - avg_calibration_score
+  - deliberation_rate
+
+  # Cultural evolution
+  - cultural_diversity
+  - convention_count
+  - avg_vocabulary_size
+  - communication_success_rate
+
+  # Emergence
+  - emergence_event_count
+  - emergence_diversity
+
+output_dir: "data/social_dynamics_experiment"
+formats: ["csv", "markdown", "json"]
+record_trajectories: false
+
+# Expected outcomes:
+# - Collectivist: Higher cooperation_ratio, trust_network_density, coalition_count
+# - Individualist: Higher emergence_diversity (more varied strategies)
+# - Balanced: Optimal survival_rate and avg_tom_accuracy (mixed strategies)

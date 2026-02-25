@@ -1,0 +1,54 @@
+name: "Value Drift Contagion"
+description: "Does corrupting one agent's cooperation trait spread to others via social interaction?"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "control"
+    overrides: {}
+  - name: "corrupt_early"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 50
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+  - name: "corrupt_late"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 150
+        action: "corrupt_traits"
+        params:
+          target: "agent_index"
+          index: 0
+          traits:
+            cooperation_tendency: 0.0
+            aggression: 0.9
+            resource_sharing: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - avg_survival_ticks
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - trait_evolution_magnitude
+  - avg_trust_network_density
+output_dir: "data/experiments/alignment/value_drift"
+formats: ["csv", "markdown"]
+record_trajectories: true

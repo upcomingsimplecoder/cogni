@@ -1,0 +1,115 @@
+name: "Cooperation Fine Sweep"
+description: "Fine-grained cooperation threshold sweep from 0.0 to 1.0 by 0.125"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "coop_0.0"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.0
+          mode: "set"
+  - name: "coop_0.125"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.125
+          mode: "set"
+  - name: "coop_0.25"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.25
+          mode: "set"
+  - name: "coop_0.375"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.375
+          mode: "set"
+  - name: "coop_0.5"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.5
+          mode: "set"
+  - name: "coop_0.625"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.625
+          mode: "set"
+  - name: "coop_0.75"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.75
+          mode: "set"
+  - name: "coop_0.875"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.875
+          mode: "set"
+  - name: "coop_1.0"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 1.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - cooperation_ratio
+  - survival_rate
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_final_health
+output_dir: "data/experiments/alignment/cooperation_fine_sweep"
+formats: ["csv", "markdown"]
+record_trajectories: false

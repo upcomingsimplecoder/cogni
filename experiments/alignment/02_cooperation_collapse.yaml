@@ -1,0 +1,75 @@
+name: "Cooperation Collapse Threshold"
+description: "Phase transition in cooperation_tendency — is there a threshold below which cooperation collapses?"
+base:
+  world_width: 24
+  world_height: 24
+  max_ticks: 300
+  num_agents: 8
+  default_architecture: "social"
+  agent_archetypes: ["diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat", "diplomat"]
+  coalitions_enabled: true
+  language_enabled: false
+  evolution_enabled: false
+conditions:
+  - name: "coop_1.0"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 1.0
+          mode: "set"
+  - name: "coop_0.75"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.75
+          mode: "set"
+  - name: "coop_0.5"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.5
+          mode: "set"
+  - name: "coop_0.25"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.25
+          mode: "set"
+  - name: "coop_0.0"
+    overrides: {}
+    tick_hooks:
+      - at_tick: 1
+        action: "corrupt_traits"
+        params:
+          target: "all"
+          traits:
+            cooperation_tendency: 0.0
+          mode: "set"
+replicates: 10
+seed_start: 42
+metrics:
+  - agents_alive_at_end
+  - survival_rate
+  - cooperation_ratio
+  - total_cooperation_events
+  - total_aggression_events
+  - avg_final_health
+output_dir: "data/experiments/alignment/cooperation_collapse"
+formats: ["csv", "markdown"]
+record_trajectories: true

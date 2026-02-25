@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTOCOG Trajectory Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #e5e5e5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 320px;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 16px 20px;
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #06b6d4;
+        }
+
+        header .meta {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        #controls {
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #controls button {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #e5e5e5;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        #controls button:hover {
+            background: #333;
+        }
+
+        #controls button.active {
+            background: #06b6d4;
+            border-color: #06b6d4;
+            color: #000;
+        }
+
+        #tickSlider {
+            flex: 1;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        #tickSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #06b6d4;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #tickSlider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #06b6d4;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        #tickLabel {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        #worldCanvas {
+            flex: 1;
+            background: #0f0f0f;
+        }
+
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .section h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .agent-card {
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .agent-card:hover {
+            background: #333;
+        }
+
+        .agent-card.selected {
+            border-color: #06b6d4;
+            background: #1a3540;
+        }
+
+        .agent-card .header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .agent-card .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .agent-card .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .agent-card .archetype {
+            font-size: 11px;
+            color: #888;
+            margin-left: auto;
+        }
+
+        .agent-card .status {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .agent-card .status.dead {
+            color: #ef4444;
+        }
+
+        .needs-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .needs-bar .label {
+            font-size: 11px;
+            color: #888;
+            width: 50px;
+        }
+
+        .needs-bar .bar {
+            flex: 1;
+            height: 4px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .needs-bar .fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        .needs-bar .fill.hunger { background: #f59e0b; }
+        .needs-bar .fill.thirst { background: #3b82f6; }
+        .needs-bar .fill.energy { background: #10b981; }
+        .needs-bar .fill.health { background: #ef4444; }
+
+        .event-item {
+            background: #2a2a2a;
+            border-left: 3px solid #eab308;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            border-radius: 2px;
+        }
+
+        .event-item .tick {
+            color: #888;
+            font-size: 11px;
+        }
+
+        .event-item .type {
+            font-weight: 600;
+            color: #eab308;
+            margin-bottom: 2px;
+        }
+
+        .event-item .desc {
+            color: #ccc;
+        }
+
+        .detail-panel {
+            background: #1a1a1a;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .detail-panel .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .detail-panel .label {
+            color: #888;
+        }
+
+        .detail-panel .value {
+            color: #e5e5e5;
+            font-weight: 500;
+        }
+
+        .monologue {
+            background: #0f0f0f;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #aaa;
+            font-style: italic;
+            margin-top: 8px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        /* Cultural visualization */
+        .cultural-detail {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .cultural-detail h3 {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cultural-stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .cultural-stat-label { color: #888; }
+        .cultural-stat-value { color: #e5e5e5; font-weight: 500; }
+        .style-badge {
+            display: inline-block; padding: 2px 6px; border-radius: 3px;
+            font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px;
+            background: #2a2a2a; color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="section">
+            <h2>Agents</h2>
+            <div id="agentList"></div>
+        </div>
+        <div class="section" id="detailSection" style="display: none;">
+            <h2>Details</h2>
+            <div id="agentDetail"></div>
+        </div>
+        <div class="section" id="culturalSection" style="display: none;">
+            <h2>Cultural Dynamics</h2>
+            <div id="culturalSummary"></div>
+        </div>
+        <div class="section">
+            <h2>Emergence Events</h2>
+            <div id="eventList"></div>
+        </div>
+    </div>
+
+    <div id="main">
+        <header>
+            <h1>AUTOCOG Trajectory Dashboard</h1>
+            <div class="meta">
+                <span id="runInfo"></span>
+            </div>
+        </header>
+
+        <div id="controls">
+            <button id="playPauseBtn">Play</button>
+            <button id="resetBtn">Reset</button>
+            <input type="range" id="tickSlider" min="0" max="100" value="0">
+            <span id="tickLabel">Tick: 0</span>
+        </div>
+
+        <canvas id="worldCanvas"></canvas>
+    </div>
+
+    <script>
+        // Embedded data placeholder
+        const DATA = /*__DATA__*/null;
+
+        // State
+        let currentTick = 0;
+        let isPlaying = false;
+        let selectedAgent = null;
+        let animationInterval = null;
+
+        // Cultural group ring colors (8 max, cycle for more)
+        const CULTURAL_GROUP_COLORS = [
+            '#f472b6', '#a78bfa', '#fb923c', '#2dd4bf',
+            '#facc15', '#38bdf8', '#e879f9', '#4ade80',
+        ];
+        const BIAS_COLORS = {
+            prestige: '#facc15', conformist: '#3b82f6',
+            content: '#22c55e', anti_conformist: '#a855f7',
+        };
+        const STYLE_LABELS = {
+            prestige: 'Prestige', conformist: 'Conformist',
+            content: 'Content', anti_conformist: 'Anti-Conformist', balanced: 'Balanced',
+        };
+        function getCulturalGroupColor(groupId) {
+            if (groupId == null || groupId < 0) return null;
+            return CULTURAL_GROUP_COLORS[groupId % CULTURAL_GROUP_COLORS.length];
+        }
+
+        // Canvas setup
+        const canvas = document.getElementById('worldCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Initialize
+        function init() {
+            document.getElementById('runInfo').textContent =
+                `Run: ${DATA.metadata.run_id.substring(0, 8)} | ` +
+                `Seed: ${DATA.metadata.seed} | ` +
+                `Agents: ${DATA.metadata.num_agents} | ` +
+                `Ticks: ${DATA.metadata.actual_ticks}`;
+
+            document.getElementById('tickSlider').max = DATA.metadata.actual_ticks;
+
+            renderAgentList();
+            renderEventList();
+            render();
+        }
+
+        // Render agent list
+        function renderAgentList() {
+            const container = document.getElementById('agentList');
+            container.innerHTML = '';
+
+            DATA.agents.forEach(agent => {
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                if (selectedAgent === agent.id) card.classList.add('selected');
+
+                const tickData = DATA.ticks[currentTick];
+                const snapshot = tickData ? tickData.find(s => s.id === agent.id) : null;
+
+                card.innerHTML = `
+                    <div class="header">
+                        <div class="color-dot" style="background: ${agent.color};"></div>
+                        <span class="name">${agent.name}</span>
+                        <span class="archetype">${agent.archetype}</span>
+                    </div>
+                    <div class="status ${snapshot && !snapshot.alive ? 'dead' : ''}">
+                        ${snapshot ? (snapshot.alive ? 'Alive' : 'Dead') : 'Unknown'}
+                    </div>
+                `;
+
+                if (snapshot && snapshot.alive) {
+                    const needs = ['hunger', 'thirst', 'energy', 'health'];
+                    needs.forEach(need => {
+                        const bar = document.createElement('div');
+                        bar.className = 'needs-bar';
+                        bar.innerHTML = `
+                            <span class="label">${need}</span>
+                            <div class="bar">
+                                <div class="fill ${need}" style="width: ${snapshot[need]}%;"></div>
+                            </div>
+                        `;
+                        card.appendChild(bar);
+                    });
+                }
+
+                card.addEventListener('click', () => {
+                    selectedAgent = agent.id;
+                    renderAgentList();
+                    renderAgentDetail();
+                    render();
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        // Render agent detail
+        function renderAgentDetail() {
+            const section = document.getElementById('detailSection');
+            const container = document.getElementById('agentDetail');
+
+            if (!selectedAgent) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            const tickData = DATA.ticks[currentTick];
+            const snapshot = tickData ? tickData.find(s => s.id === selectedAgent) : null;
+
+            if (!snapshot) {
+                container.innerHTML = '<p style="color: #888;">No data for this tick</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="detail-panel">
+                    <div class="row">
+                        <span class="label">Position:</span>
+                        <span class="value">(${snapshot.pos[0]}, ${snapshot.pos[1]})</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Action:</span>
+                        <span class="value">${snapshot.action} ${snapshot.success ? '✓' : '✗'}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Intention:</span>
+                        <span class="value">${snapshot.intention}</span>
+                    </div>
+                    <div class="row">
+                        <span class="label">Inventory:</span>
+                        <span class="value">${Object.entries(snapshot.inventory).map(([k,v]) => `${k}: ${v}`).join(', ') || 'Empty'}</span>
+                    </div>
+                </div>
+                ${snapshot.monologue ? `<div class="monologue">"${snapshot.monologue}"</div>` : ''}
+                ${snapshot.cultural ? `
+                <div class="cultural-detail">
+                    <h3>Cultural Profile</h3>
+                    <div class="detail-panel">
+                        <div class="row">
+                            <span class="label">Learning Style:</span>
+                            <span class="value"><span class="style-badge">${STYLE_LABELS[snapshot.cultural.style] || snapshot.cultural.style || '—'}</span></span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Repertoire:</span>
+                            <span class="value">${snapshot.cultural.adopted_count} adopted / ${snapshot.cultural.repertoire_size} total</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Cultural Group:</span>
+                            <span class="value">${snapshot.cultural.group >= 0 ? 'Group ' + snapshot.cultural.group : 'Unaffiliated'}</span>
+                        </div>
+                        ${snapshot.cultural.events && snapshot.cultural.events.filter(e => e.adopted).length > 0 ? `
+                        <div class="row" style="margin-top: 6px;">
+                            <span class="label">This Tick:</span>
+                            <span class="value">${snapshot.cultural.events.filter(e => e.adopted).length} adoption(s)</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Render emergence events
+        function renderEventList() {
+            const container = document.getElementById('eventList');
+            const events = DATA.emergence_events.filter(e => e.tick <= currentTick);
+
+            if (events.length === 0) {
+                container.innerHTML = '<p style="color: #888; font-size: 12px;">No events yet</p>';
+                return;
+            }
+
+            container.innerHTML = events.slice(-10).reverse().map(event => `
+                <div class="event-item">
+                    <div class="tick">Tick ${event.tick}</div>
+                    <div class="type">${event.type}</div>
+                    <div class="desc">${event.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Render cultural summary
+        function renderCulturalSummary() {
+            const section = document.getElementById('culturalSection');
+            const container = document.getElementById('culturalSummary');
+
+            if (!DATA.cultural_summary || Object.keys(DATA.cultural_summary).length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            const summary = DATA.cultural_summary[currentTick];
+
+            if (!summary) {
+                container.innerHTML = '<p style="color: #888; font-size: 12px;">No cultural data for this tick</p>';
+                return;
+            }
+
+            const styleEntries = Object.entries(summary.style_distribution || {}).sort((a, b) => b[1] - a[1]);
+
+            container.innerHTML = '<div class="detail-panel">' +
+                '<div class="row"><span class="label">Cultural Groups:</span><span class="value">' + summary.group_count + '</span></div>' +
+                '<div class="row"><span class="label">Total Variants:</span><span class="value">' + summary.total_variants + '</span></div>' +
+                '<div class="row"><span class="label">Total Adopted:</span><span class="value">' + summary.total_adopted + '</span></div>' +
+                (styleEntries.length > 0 ? '<div style="margin-top: 8px;"><span class="label">Learning Styles:</span>' +
+                    styleEntries.map(function(entry) {
+                        return '<div style="font-size: 11px; color: #aaa; margin-top: 2px;">' + (STYLE_LABELS[entry[0]] || entry[0]) + ': ' + entry[1] + '</div>';
+                    }).join('') + '</div>' : '') +
+                '</div>';
+        }
+
+        // Render world
+        function render() {
+            ctx.fillStyle = '#0f0f0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const tickData = DATA.ticks[currentTick];
+            if (!tickData) return;
+
+            const worldWidth = DATA.metadata.world_width;
+            const worldHeight = DATA.metadata.world_height;
+            const cellSize = Math.min(canvas.width / worldWidth, canvas.height / worldHeight);
+            const offsetX = (canvas.width - cellSize * worldWidth) / 2;
+            const offsetY = (canvas.height - cellSize * worldHeight) / 2;
+
+            // Draw grid
+            ctx.strokeStyle = '#1a1a1a';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= worldWidth; x++) {
+                ctx.beginPath();
+                ctx.moveTo(offsetX + x * cellSize, offsetY);
+                ctx.lineTo(offsetX + x * cellSize, offsetY + worldHeight * cellSize);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= worldHeight; y++) {
+                ctx.beginPath();
+                ctx.moveTo(offsetX, offsetY + y * cellSize);
+                ctx.lineTo(offsetX + worldWidth * cellSize, offsetY + y * cellSize);
+                ctx.stroke();
+            }
+
+            // Draw agents
+            tickData.forEach(snapshot => {
+                if (!snapshot.alive) return;
+
+                const agent = DATA.agents.find(a => a.id === snapshot.id);
+                if (!agent) return;
+
+                const x = offsetX + snapshot.pos[0] * cellSize;
+                const y = offsetY + snapshot.pos[1] * cellSize;
+                const radius = cellSize * 0.3;
+
+                // Highlight selected agent
+                if (snapshot.id === selectedAgent) {
+                    ctx.fillStyle = '#06b6d4';
+                    ctx.fillRect(x, y, cellSize, cellSize);
+                }
+
+                // Draw agent circle
+                ctx.fillStyle = agent.color;
+                ctx.beginPath();
+                ctx.arc(x + cellSize / 2, y + cellSize / 2, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cultural group ring
+                if (snapshot.cultural && snapshot.cultural.group >= 0) {
+                    const groupColor = getCulturalGroupColor(snapshot.cultural.group);
+                    if (groupColor) {
+                        ctx.strokeStyle = groupColor;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(x + cellSize / 2, y + cellSize / 2, cellSize * 0.4, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                }
+
+                // Draw health bar
+                const barWidth = cellSize * 0.8;
+                const barHeight = 3;
+                const barX = x + (cellSize - barWidth) / 2;
+                const barY = y + cellSize - 8;
+
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(barX, barY, barWidth * (snapshot.health / 100), barHeight);
+            });
+
+            // Draw transmission lines for this tick
+            tickData.forEach(snapshot => {
+                if (!snapshot.cultural || !snapshot.cultural.events) return;
+                snapshot.cultural.events.forEach(event => {
+                    if (!event.adopted || !event.actor_id) return;
+                    const actor = tickData.find(s => s.id === event.actor_id);
+                    if (!actor || !actor.alive) return;
+
+                    const ox = offsetX + snapshot.pos[0] * cellSize + cellSize / 2;
+                    const oy = offsetY + snapshot.pos[1] * cellSize + cellSize / 2;
+                    const ax = offsetX + actor.pos[0] * cellSize + cellSize / 2;
+                    const ay = offsetY + actor.pos[1] * cellSize + cellSize / 2;
+
+                    ctx.save();
+                    ctx.globalAlpha = 0.5;
+                    ctx.strokeStyle = BIAS_COLORS[event.bias_type] || '#888';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(ox, oy);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+                });
+            });
+        }
+
+        // Controls
+        document.getElementById('playPauseBtn').addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            document.getElementById('playPauseBtn').textContent = isPlaying ? 'Pause' : 'Play';
+            document.getElementById('playPauseBtn').classList.toggle('active', isPlaying);
+
+            if (isPlaying) {
+                animationInterval = setInterval(() => {
+                    if (currentTick < DATA.metadata.actual_ticks) {
+                        currentTick++;
+                        updateTick();
+                    } else {
+                        isPlaying = false;
+                        document.getElementById('playPauseBtn').textContent = 'Play';
+                        document.getElementById('playPauseBtn').classList.remove('active');
+                        clearInterval(animationInterval);
+                    }
+                }, 100);
+            } else {
+                clearInterval(animationInterval);
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isPlaying = false;
+            document.getElementById('playPauseBtn').textContent = 'Play';
+            document.getElementById('playPauseBtn').classList.remove('active');
+            clearInterval(animationInterval);
+            currentTick = 0;
+            updateTick();
+        });
+
+        document.getElementById('tickSlider').addEventListener('input', (e) => {
+            currentTick = parseInt(e.target.value);
+            updateTick();
+        });
+
+        function updateTick() {
+            document.getElementById('tickLabel').textContent = `Tick: ${currentTick}`;
+            document.getElementById('tickSlider').value = currentTick;
+            renderAgentList();
+            renderAgentDetail();
+            renderCulturalSummary();
+            renderEventList();
+            render();
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
