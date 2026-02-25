@@ -111,7 +111,8 @@ cogniarch ships with 7 pre-configured architectures that compose different pipel
 - **Coalition Formation** -- Agents form, maintain, and dissolve alliances based on trust, shared goals, and social dynamics.
 - **Trajectory Recording** -- Full SRIE state captured per agent per tick, exportable as JSONL or CSV for post-hoc analysis.
 - **Batch Experiments** -- YAML-defined experiment specs with conditions, replicates, seed ranges, and automated metric collection.
-- **Live Dashboard** -- WebSocket-powered real-time visualization of agent state, world map, and cognitive pipeline (requires `cogniarch[live]`).
+- **Live Dashboard** -- WebSocket-powered real-time visualization with 5 switchable lenses (requires `cogniarch[live]`).
+- **Parquet Export** -- Columnar trajectory export with DuckDB integration for large-scale analysis (requires `cogniarch[data]`).
 
 ## CLI Usage
 
@@ -131,6 +132,24 @@ All settings are also configurable via `AUTOCOG_*` environment variables:
 ```bash
 AUTOCOG_NUM_AGENTS=10 AUTOCOG_SEED=42 cogniarch
 ```
+
+## Live Dashboard
+
+The real-time dashboard provides 5 visualization lenses, each showing a different aspect of the simulation:
+
+```bash
+cogniarch --live --live-port=8001 --agents=8 --tom --coalitions --language --evolution
+```
+
+| Lens | View | Key Bindings |
+|------|------|--------------|
+| **Physical** | Agent positions, resources, transmission lines | Default |
+| **Social** | Trust networks, coalition hulls, relationship inspector | `R` toggle all trust lines, `C` toggle coalition hulls |
+| **Cognitive** | SRIE cascade, metacognition state, ToM prediction arrows, calibration curves | `D` toggle deliberation heatmap, `M` toggle ToM lines |
+| **Cultural** | Cultural group territories, language bubbles, transmission events, variant frequencies | `L` toggle language bubbles, `T` toggle transmission lines |
+| **Temporal** | Agent movement trails, metric sparklines, action history, emergence events | `T` toggle trails, `A` toggle all/selected trails |
+
+Switch lenses with the toolbar buttons or keys `1-5`. Click any agent to inspect its detailed state in the side panel.
 
 ## LLM Setup
 
@@ -208,6 +227,7 @@ cogniarch experiment examples/architecture_comparison.yaml
 
 | File | Description |
 |------|-------------|
+| `examples/reproduce_paper.ipynb` | **Reproduce our ALIFE paper** findings in 5 minutes |
 | `examples/quickstart.py` | Run your first simulation |
 | `examples/custom_archetype.py` | Create custom personality profiles |
 | `examples/run_experiment.py` | Batch experiments from code or YAML |
@@ -256,6 +276,8 @@ cogniarch was built to support empirical research on cognitive architecture effe
 - 56,000+ simulation runs across architecture and personality configurations
 - Full trajectory datasets (SRIE state per agent per tick) for reproducible analysis
 - Controlled experimental design via YAML batch runner with seed management
+- **[Benchmark results](BENCHMARKS.md)** -- Architecture rankings across 10 scenarios
+- **[HuggingFace dataset](https://huggingface.co/datasets/cogniarch/benchmarks)** -- Full 56K-run dataset with Parquet exports
 
 ## Project Structure
 
@@ -268,7 +290,8 @@ src/
   communication/      # Message protocol, mailbox, channel bus, emergent language
   memory/             # Episodic + social memory systems
   emergence/          # Pattern detection + metrics collection
-  trajectory/         # Recording, export (JSONL/CSV), loading
+  trajectory/         # Recording, export (JSONL/CSV/Parquet), loading, DuckDB catalog
+  visualization/      # Live WebSocket dashboard, 5 lenses, static assets
   social/             # Coalition formation, coordination, dissolution
   evolution/          # Genetics, reproduction, cultural transmission, lineage
   theory_of_mind/     # Mental modeling, intention prediction, strategic reasoning

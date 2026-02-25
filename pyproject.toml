@@ -1,6 +1,6 @@
 [project]
 name = "cogniarch"
-version = "0.1.0"
+version = "0.1.1"
 description = "Pluggable cognitive architecture framework for multi-agent simulation and alignment research"
 readme = "README.md"
 license = "MIT"

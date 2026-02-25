@@ -199,7 +199,7 @@ def test_hash_file_missing():
 def test_get_autocog_version():
     """Test AUTOCOG version extraction."""
     version = _get_autocog_version()
-    assert version == "0.1.0"  # From pyproject.toml
+    assert version == "0.1.1"  # From pyproject.toml
 
 
 def test_get_dependency_versions():
