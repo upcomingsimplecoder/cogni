@@ -13,6 +13,11 @@ with a comprehensive dataset card suitable for research use.
 from __future__ import annotations
 
 import argparse
+import os
+
+# Ensure UTF-8 output on Windows (avoids cp1252 encoding errors)
+if os.name == "nt":
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
 import json
 import shutil
 import sys

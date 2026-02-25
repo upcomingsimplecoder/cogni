@@ -116,9 +116,9 @@ class HuggingFacePublisher:
 
             try:
                 api.create_repo(repo_id=self.repo_id, repo_type="dataset", exist_ok=True)
-                print(f"✓ Repository created/verified: {self.repo_id}")
+                print(f"[OK] Repository created/verified: {self.repo_id}")
             except Exception as e:
-                print(f"⚠ Repository creation failed (may already exist): {e}")
+                print(f"[WARN] Repository creation failed (may already exist): {e}")
 
             # Upload directory contents
             api.upload_folder(
@@ -129,7 +129,7 @@ class HuggingFacePublisher:
             )
 
             dataset_url = f"https://huggingface.co/datasets/{self.repo_id}"
-            print(f"\n✓ Successfully published to: {dataset_url}")
+            print(f"\n[OK] Successfully published to: {dataset_url}")
 
             return dataset_url
 
